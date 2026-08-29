@@ -15,3 +15,22 @@
 <w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (259kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
  ✓ Compiled /login in 16.4s (667 modules)
  ✓ Compiled in 662ms (325 modules)
+ GET /login 200 in 76ms
+ GET /login 200 in 57ms
+ ○ Compiling /favicon.ico ...
+ ✓ Compiled /favicon.ico in 577ms (365 modules)
+ GET /favicon.ico 200 in 855ms
+ ○ Compiling /signup ...
+ ✓ Compiled /signup in 526ms (682 modules)
+ GET /login 200 in 391ms
+ ✓ Compiled in 931ms (664 modules)
+ ✓ Compiled in 712ms (664 modules)
+ ✓ Compiled in 157ms (327 modules)
+ ✓ Compiled in 525ms (664 modules)
+ ✓ Compiled in 618ms (664 modules)
+ GET /login?code=d7c2e393-9a7a-4776-8d5c-4272d23af0db 200 in 191ms
+ ○ Compiling / ...
+ ✓ Compiled / in 767ms (654 modules)
+ ✓ Compiled in 1415ms (668 modules)
+ ✓ Compiled in 879ms (668 modules)
+ ✓ Compiled in 1065ms (785 modules)

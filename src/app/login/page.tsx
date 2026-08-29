@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useSignIn } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
 
 export default function LoginPage() {
@@ -11,31 +11,35 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const { signIn, isLoaded } = useSignIn();
   const router = useRouter();
-  const supabase = createClient();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+
+    if (!isLoaded) return;
     setLoading(true);
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    try {
+      const result = await signIn.create({
+        identifier: email,
+        password,
+      });
 
-    if (error) {
-      if (error.message.includes("Email not confirmed")) {
-        setError("Please confirm your email first. Check your inbox for the confirmation link.");
+      if (result.status === "complete") {
+        router.push("/");
+        router.refresh();
+      }
+    } catch (err: any) {
+      if (err.errors?.[0]?.message) {
+        setError(err.errors[0].message);
       } else {
         setError("Invalid email or password.");
       }
+    } finally {
       setLoading(false);
-      return;
     }
-
-    router.push("/");
-    router.refresh();
   };
 
   return (

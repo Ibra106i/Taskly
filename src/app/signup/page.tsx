@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { useSignUp } from "@clerk/nextjs";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 export default function SignupPage() {
@@ -12,7 +13,9 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const supabase = createClient();
+  const [verificationEmail, setVerificationEmail] = useState("");
+  const { signUp, isLoaded } = useSignUp();
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,24 +31,32 @@ export default function SignupPage() {
       return;
     }
 
+    if (!isLoaded) return;
     setLoading(true);
 
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: `${window.location.origin}/auth/confirm`,
-      },
-    });
+    try {
+      const result = await signUp.create({
+        emailAddress: email,
+        password,
+      });
 
-    if (error) {
-      setError(error.message);
+      if (result.status === "complete") {
+        router.push("/");
+        router.refresh();
+      } else if (result.status === "missing_requirements") {
+        await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
+        setVerificationEmail(email);
+        setSubmitted(true);
+      }
+    } catch (err: any) {
+      if (err.errors?.[0]?.message) {
+        setError(err.errors[0].message);
+      } else {
+        setError("Something went wrong. Please try again.");
+      }
+    } finally {
       setLoading(false);
-      return;
     }
-
-    setSubmitted(true);
-    setLoading(false);
   };
 
   if (submitted) {
@@ -65,13 +76,13 @@ export default function SignupPage() {
                 Check your email
               </h2>
               <p className="font-body-md text-on-surface-variant mb-sm">
-                We sent a confirmation link to
+                We sent a verification code to
               </p>
               <p className="font-body-lg text-on-surface font-medium mb-lg">
-                {email}
+                {verificationEmail}
               </p>
               <p className="font-body-md text-on-surface-variant mb-xl">
-                Click the link in the email to verify your account, then come back and sign in.
+                Enter the code in the verification prompt to complete your signup.
               </p>
               <Link
                 href="/login"
