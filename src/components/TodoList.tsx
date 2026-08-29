@@ -87,31 +87,37 @@ export default function TodoList({ initialTodos, userId }: TodoListProps) {
   };
 
   return (
-    <div className="bg-surface-container-lowest rounded-2xl shadow-soft p-xl">
+    <div className="bg-surface-container-lowest rounded-3xl shadow-soft p-xl">
       <form onSubmit={handleSubmit} className="flex gap-md mb-lg">
-        <input
-          type="text"
-          value={newTodo}
-          onChange={(e) => {
-            setNewTodo(e.target.value);
-            setError("");
-          }}
-          placeholder="What needs to be done?"
-          className="flex-1 h-12 px-4 rounded-xl bg-[#F7F5F0] border-none focus:ring-2 focus:ring-primary focus:outline-none transition-all shadow-inner-soft font-body-md placeholder-on-surface-variant/50"
-          style={{ color: "#131d25", WebkitTextFillColor: "#131d25" }}
-        />
+        <div className="flex-1 relative">
+          <input
+            type="text"
+            value={newTodo}
+            onChange={(e) => {
+              setNewTodo(e.target.value);
+              setError("");
+            }}
+            placeholder="What needs to be done?"
+            className="w-full h-12 pl-12 pr-4 rounded-xl bg-[#F7F5F0] border-none focus:ring-2 focus:ring-primary focus:outline-none transition-all shadow-inner-soft font-body-md placeholder-on-surface-variant/50"
+            style={{ color: "#131d25", WebkitTextFillColor: "#131d25" }}
+          />
+          <span className="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-outline-variant text-[20px]">
+            add_task
+          </span>
+        </div>
         <button
           type="submit"
           disabled={loading}
-          className="h-12 px-6 bg-primary hover:bg-primary-container active:scale-[0.98] transition-all rounded-xl font-button text-on-primary shadow-sm disabled:opacity-50"
+          className="h-12 px-6 bg-primary hover:bg-primary-container active:scale-[0.98] transition-all rounded-xl font-button text-on-primary shadow-sm disabled:opacity-50 flex items-center gap-sm"
         >
+          <span className="material-symbols-outlined text-[18px]">add</span>
           {loading ? "Adding..." : "Add"}
         </button>
       </form>
 
       {error && (
-        <div className="flex items-start gap-xs bg-error-container/30 rounded-xl p-md mb-lg">
-          <span className="material-symbols-outlined text-[16px] text-error mt-[2px]">
+        <div className="flex items-center gap-sm bg-error-container/30 rounded-xl p-md mb-lg">
+          <span className="material-symbols-outlined text-[18px] text-error">
             error
           </span>
           <p className="font-label-md text-error">{error}</p>
@@ -119,23 +125,27 @@ export default function TodoList({ initialTodos, userId }: TodoListProps) {
       )}
 
       {todos.length === 0 ? (
-        <div className="text-center py-xl">
-          <span className="material-symbols-outlined text-[48px] text-outline-variant mb-md block">
+        <div className="text-center py-2xl">
+          <span className="material-symbols-outlined text-[56px] text-outline-variant/40 mb-lg block">
             checklist
           </span>
-          <p className="font-body-md text-on-surface-variant">
+          <p className="font-body-lg text-on-surface-variant/60">
             No todos yet. Add one above.
           </p>
         </div>
       ) : (
-        <div className="flex flex-col gap-sm">
-          {todos.map((todo) => (
-            <TodoItem
-              key={todo.id}
-              todo={todo}
-              onToggle={handleToggle}
-              onDelete={handleDelete}
-            />
+        <div className="flex flex-col">
+          {todos.map((todo, index) => (
+            <div key={todo.id}>
+              <TodoItem
+                todo={todo}
+                onToggle={handleToggle}
+                onDelete={handleDelete}
+              />
+              {index < todos.length - 1 && (
+                <div className="h-px bg-[#F7F5F0] mx-lg" />
+              )}
+            </div>
           ))}
         </div>
       )}
