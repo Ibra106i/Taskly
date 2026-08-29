@@ -1,5 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
+import { createSupabaseClient } from "@/lib/supabase/server";
+import TodoList from "@/components/TodoList";
 import SignOutButton from "@/components/SignOutButton";
 
 export default async function Home() {
@@ -9,23 +11,24 @@ export default async function Home() {
     redirect("/login");
   }
 
+  const supabase = createSupabaseClient();
+  const { data: todos } = await supabase
+    .from("todos")
+    .select("*")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false });
+
   return (
     <div className="min-h-screen bg-[#F7F5F0]">
       <header className="bg-surface-container-lowest shadow-soft">
-        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+        <div className="max-w-2xl mx-auto px-4 py-4 flex items-center justify-between">
           <h1 className="font-headline-md text-primary font-bold">Taskly</h1>
-          <div className="flex items-center gap-lg">
-            <SignOutButton />
-          </div>
+          <SignOutButton />
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-4 py-8">
-        <div className="bg-surface-container-lowest rounded-2xl shadow-soft p-xl">
-          <p className="font-body-md text-on-surface-variant">
-            Welcome! Your todo list will appear here.
-          </p>
-        </div>
+      <main className="max-w-2xl mx-auto px-4 py-8">
+        <TodoList initialTodos={todos || []} userId={userId} />
       </main>
     </div>
   );
