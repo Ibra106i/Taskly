@@ -21,3 +21,8 @@ To learn more, including how to opt-out from the telemetry program, visit: https
 
  GET /login 200 in 8331ms
  ✓ Compiled in 2.7s (389 modules)
+ ✓ Compiled in 648ms (389 modules)
+ ✓ Compiled in 603ms (389 modules)
+ ✓ Compiled in 228ms (389 modules)
+ ✓ Compiled in 1796ms (389 modules)
+ ✓ Compiled in 718ms (389 modules)

@@ -48,7 +48,7 @@ export default function SignupPage() {
         setVerificationEmail(email);
         setSubmitted(true);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       if (err.errors?.[0]?.message) {
         setError(err.errors[0].message);
       } else {

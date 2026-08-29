@@ -31,7 +31,7 @@ export default function LoginPage() {
         router.push("/");
         router.refresh();
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       if (err.errors?.[0]?.message) {
         setError(err.errors[0].message);
       } else {
