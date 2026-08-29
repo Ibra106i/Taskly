@@ -2,35 +2,23 @@
 > taskly@0.1.0 dev
 > next dev
 
-  ▲ Next.js 14.2.35
-  - Local:        http://localhost:3000
-  - Environments: .env.local
+   ▲ Next.js 15.5.24
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.18.6:3000
+   - Environments: .env.local
 
  ✓ Starting...
- ✓ Ready in 6.6s
- ○ Compiling /src/middleware ...
- ✓ Compiled /src/middleware in 790ms (131 modules)
+ ✓ Ready in 30.8s
+ ○ Compiling /middleware ...
+ ✓ Compiled /middleware in 1166ms (211 modules)
+Clerk - DEPRECATION WARNING: "createRouteMatcher" is deprecated and will be removed in the next major release.
+Use resource-based auth checks instead. Move auth checks into each page, layout, API route, or Server Function that accesses protected data. Middleware-based auth checks rely on path matching, which can diverge from how Next.js routes requests and leave protected resources reachable. For a migration guide, see: https://clerk.com/docs/guides/development/upgrading/upgrade-guides/migrate-from-create-route-matcher
  ○ Compiling /login ...
-<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (107kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
-<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (259kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
- ✓ Compiled /login in 16.4s (667 modules)
- ✓ Compiled in 662ms (325 modules)
- GET /login 200 in 76ms
- GET /login 200 in 57ms
- ○ Compiling /favicon.ico ...
- ✓ Compiled /favicon.ico in 577ms (365 modules)
- GET /favicon.ico 200 in 855ms
- ○ Compiling /signup ...
- ✓ Compiled /signup in 526ms (682 modules)
- GET /login 200 in 391ms
- ✓ Compiled in 931ms (664 modules)
- ✓ Compiled in 712ms (664 modules)
- ✓ Compiled in 157ms (327 modules)
- ✓ Compiled in 525ms (664 modules)
- ✓ Compiled in 618ms (664 modules)
- GET /login?code=d7c2e393-9a7a-4776-8d5c-4272d23af0db 200 in 191ms
- ○ Compiling / ...
- ✓ Compiled / in 767ms (654 modules)
- ✓ Compiled in 1415ms (668 modules)
- ✓ Compiled in 879ms (668 modules)
- ✓ Compiled in 1065ms (785 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (273kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
+ ✓ Compiled /login in 27s (1104 modules)
+Attention: Clerk collects telemetry data from its SDKs when connected to development instances.
+The data collected is used to inform Clerk's product roadmap.
+To learn more, including how to opt-out from the telemetry program, visit: https://clerk.com/docs/telemetry.
+
+ GET /login 200 in 29741ms
+ ✓ Compiled in 2.8s (389 modules)
