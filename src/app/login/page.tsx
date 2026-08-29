@@ -25,7 +25,11 @@ export default function LoginPage() {
     });
 
     if (error) {
-      setError(error.message);
+      if (error.message.includes("Email not confirmed")) {
+        setError("Please confirm your email first. Check your inbox for the confirmation link.");
+      } else {
+        setError("Invalid email or password.");
+      }
       setLoading(false);
       return;
     }
@@ -59,7 +63,8 @@ export default function LoginPage() {
                   mail
                 </span>
                 <input
-                  className="w-full h-12 pl-[48px] pr-md rounded-xl bg-[#F7F5F0] border-none focus:ring-2 focus:ring-primary focus:outline-none transition-all shadow-inner-soft text-on-surface font-body-md placeholder-on-surface-variant/50"
+                  className="w-full h-12 pl-[48px] pr-md rounded-xl bg-[#F7F5F0] border-none focus:ring-2 focus:ring-primary focus:outline-none transition-all shadow-inner-soft font-body-md placeholder-on-surface-variant/50"
+                  style={{ color: "#131d25", WebkitTextFillColor: "#131d25" }}
                   id="email"
                   name="email"
                   placeholder="Enter your email"
@@ -82,7 +87,8 @@ export default function LoginPage() {
                   lock
                 </span>
                 <input
-                  className="w-full h-12 pl-[48px] pr-[48px] rounded-xl bg-[#F7F5F0] border-none focus:ring-2 focus:ring-primary focus:outline-none transition-all shadow-inner-soft text-on-surface font-body-md placeholder-on-surface-variant/50"
+                  className="w-full h-12 pl-[48px] pr-[48px] rounded-xl bg-[#F7F5F0] border-none focus:ring-2 focus:ring-primary focus:outline-none transition-all shadow-inner-soft font-body-md placeholder-on-surface-variant/50"
+                  style={{ color: "#131d25", WebkitTextFillColor: "#131d25" }}
                   id="password"
                   name="password"
                   placeholder="Enter your password"
@@ -104,7 +110,7 @@ export default function LoginPage() {
             </div>
 
             {error && (
-              <div className="flex items-start gap-xs">
+              <div className="flex items-start gap-xs bg-error-container/30 rounded-xl p-md">
                 <span className="material-symbols-outlined text-[16px] text-error mt-[2px]">
                   error
                 </span>

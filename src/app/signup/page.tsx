@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
 
@@ -12,7 +11,7 @@ export default function SignupPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const router = useRouter();
+  const [submitted, setSubmitted] = useState(false);
   const supabase = createClient();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -34,6 +33,9 @@ export default function SignupPage() {
     const { error } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        emailRedirectTo: `${window.location.origin}/auth/confirm`,
+      },
     });
 
     if (error) {
@@ -42,9 +44,47 @@ export default function SignupPage() {
       return;
     }
 
-    router.push("/");
-    router.refresh();
+    setSubmitted(true);
+    setLoading(false);
   };
+
+  if (submitted) {
+    return (
+      <main className="min-h-screen flex items-center justify-center p-margin-mobile md:p-margin-desktop">
+        <div className="w-full max-w-[440px]">
+          <div className="text-center mb-lg">
+            <h1 className="font-headline-md text-primary font-bold">Taskly</h1>
+          </div>
+
+          <div className="bg-surface-container-lowest rounded-2xl shadow-soft p-lg md:p-xl w-full">
+            <div className="flex flex-col items-center text-center py-lg">
+              <span className="material-symbols-outlined text-[56px] text-primary mb-md">
+                mark_email_read
+              </span>
+              <h2 className="font-headline-lg-mobile md:font-headline-lg text-on-surface mb-sm">
+                Check your email
+              </h2>
+              <p className="font-body-md text-on-surface-variant mb-sm">
+                We sent a confirmation link to
+              </p>
+              <p className="font-body-lg text-on-surface font-medium mb-lg">
+                {email}
+              </p>
+              <p className="font-body-md text-on-surface-variant mb-xl">
+                Click the link in the email to verify your account, then come back and sign in.
+              </p>
+              <Link
+                href="/login"
+                className="font-button text-primary hover:text-on-primary-container transition-colors underline underline-offset-4 decoration-primary/30"
+              >
+                Back to sign in
+              </Link>
+            </div>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen flex items-center justify-center p-margin-mobile md:p-margin-desktop">
@@ -53,7 +93,7 @@ export default function SignupPage() {
           <h1 className="font-headline-md text-primary font-bold">Taskly</h1>
         </div>
 
-        <div className="bg-surface-container-lowest rounded-2xl shadow-ple p-lg md:p-xl w-full">
+        <div className="bg-surface-container-lowest rounded-2xl shadow-soft p-lg md:p-xl w-full">
           <div className="mb-lg text-center">
             <h2 className="font-headline-lg-mobile md:font-headline-lg text-on-surface mb-xs">
               Create your account
@@ -70,6 +110,7 @@ export default function SignupPage() {
               </label>
               <input
                 className="tactile-input"
+                style={{ color: "#131d25", WebkitTextFillColor: "#131d25" }}
                 id="email"
                 name="email"
                 placeholder="jane@example.com"
@@ -87,6 +128,7 @@ export default function SignupPage() {
               <div className="relative">
                 <input
                   className="tactile-input pr-12"
+                  style={{ color: "#131d25", WebkitTextFillColor: "#131d25" }}
                   id="password"
                   name="password"
                   placeholder="••••••••"
@@ -114,6 +156,7 @@ export default function SignupPage() {
               </label>
               <input
                 className="tactile-input"
+                style={{ color: "#131d25", WebkitTextFillColor: "#131d25" }}
                 id="confirmPassword"
                 name="confirmPassword"
                 placeholder="••••••••"
