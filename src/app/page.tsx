@@ -1,8 +1,10 @@
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { createSupabaseClient } from "@/lib/supabase/server";
 import TodoList from "@/components/TodoList";
 import SignOutButton from "@/components/SignOutButton";
+import ThemeToggle from "@/components/ThemeToggle";
 
 export default async function Home() {
   const { userId } = await auth();
@@ -22,13 +24,19 @@ export default async function Home() {
   const totalCount = todos?.length || 0;
 
   return (
-    <div className="min-h-screen bg-[#F7F5F0]">
-      <header className="bg-surface-container-lowest shadow-soft sticky top-0 z-10">
+    <div className="min-h-screen bg-background">
+      <header className="bg-surface shadow-soft sticky top-0 z-10">
         <div className="max-w-2xl mx-auto px-6 py-4 flex items-center justify-between">
-          <h1 className="font-headline-md text-primary font-bold tracking-tight">
+          <Link href="/" className="font-headline-md text-primary font-bold tracking-tight">
             Taskly
-          </h1>
-          <SignOutButton />
+          </Link>
+          <div className="flex items-center gap-sm">
+            <Link href="/stats" className="p-sm rounded-lg hover:bg-primary/10 transition-colors text-on-surface-variant hover:text-on-surface">
+              <span className="material-symbols-outlined text-[20px]">bar_chart</span>
+            </Link>
+            <ThemeToggle />
+            <SignOutButton />
+          </div>
         </div>
       </header>
 
@@ -38,7 +46,7 @@ export default async function Home() {
             <p className="font-label-md text-on-surface-variant">
               {completedCount} of {totalCount} completed
             </p>
-            <div className="h-2 w-32 bg-[#F7F5F0] rounded-full overflow-hidden shadow-inner-soft">
+            <div className="h-2 w-32 bg-surface-variant rounded-full overflow-hidden" style={{ boxShadow: "inset 0px 1px 3px rgba(113, 121, 118, 0.1)" }}>
               <div
                 className="h-full bg-primary-container rounded-full transition-all duration-500"
                 style={{

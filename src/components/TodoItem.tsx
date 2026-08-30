@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { motion, AnimatePresence } from "motion/react";
-import { CATEGORIES, DURATIONS, formatDuration, formatDate, getDueDateColor } from "@/lib/constants";
+import { CATEGORIES, DURATIONS, PRIORITIES, formatDuration, formatDate, getDueDateColor, getPriorityColor } from "@/lib/constants";
 
 interface Todo {
   id: string;
@@ -14,13 +14,14 @@ interface Todo {
   due_date: string | null;
   duration_minutes: number | null;
   category: string | null;
+  priority: string | null;
 }
 
 interface TodoItemProps {
   todo: Todo;
   onToggle: (id: string, completed: boolean) => void;
   onDelete: (id: string) => void;
-  onUpdate: (id: string, updates: { title?: string; due_date?: string | null; duration_minutes?: number | null; category?: string | null }) => void;
+  onUpdate: (id: string, updates: { title?: string; due_date?: string | null; duration_minutes?: number | null; category?: string | null; priority?: string | null }) => void;
 }
 
 export default function TodoItem({ todo, onToggle, onDelete, onUpdate }: TodoItemProps) {
@@ -29,6 +30,7 @@ export default function TodoItem({ todo, onToggle, onDelete, onUpdate }: TodoIte
   const [editDueDate, setEditDueDate] = useState(todo.due_date?.split("T")[0] || "");
   const [editDuration, setEditDuration] = useState(todo.duration_minutes?.toString() || "");
   const [editCategory, setEditCategory] = useState(todo.category || "");
+  const [editPriority, setEditPriority] = useState(todo.priority || "");
   const [showOptions, setShowOptions] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const optionsRef = useRef<HTMLDivElement>(null);
@@ -79,6 +81,7 @@ export default function TodoItem({ todo, onToggle, onDelete, onUpdate }: TodoIte
       due_date: editDueDate ? new Date(editDueDate).toISOString() : null,
       duration_minutes: editDuration ? parseInt(editDuration) : null,
       category: editCategory || null,
+      priority: editPriority || null,
     });
     setEditing(false);
   };
@@ -88,6 +91,7 @@ export default function TodoItem({ todo, onToggle, onDelete, onUpdate }: TodoIte
     setEditDueDate(todo.due_date?.split("T")[0] || "");
     setEditDuration(todo.duration_minutes?.toString() || "");
     setEditCategory(todo.category || "");
+    setEditPriority(todo.priority || "");
     setEditing(false);
   };
 
@@ -102,6 +106,7 @@ export default function TodoItem({ todo, onToggle, onDelete, onUpdate }: TodoIte
   };
 
   const categoryObj = todo.category ? CATEGORIES.find((c) => c.name === todo.category) : null;
+  const priorityColor = getPriorityColor(todo.priority);
 
   return (
     <motion.div
@@ -112,16 +117,23 @@ export default function TodoItem({ todo, onToggle, onDelete, onUpdate }: TodoIte
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, x: -20, scale: 0.95 }}
       transition={{ type: "spring", stiffness: 500, damping: 30 }}
-      className="py-lg px-lg hover:bg-[#F7F5F0]/50 transition-colors group rounded-xl"
+      className="py-lg px-lg hover:bg-surface-variant/50 transition-colors group rounded-xl"
     >
       <div className="flex items-center gap-md">
         <div
           {...attributes}
           {...listeners}
-          className="cursor-grab active:cursor-grabbing text-outline-variant/40 hover:text-outline-variant transition-colors shrink-0 touch-none"
+          className="cursor-grab active:cursor-grabbing text-on-surface-variant/40 hover:text-on-surface-variant transition-colors shrink-0 touch-none"
         >
           <span className="material-symbols-outlined text-[18px]">drag_indicator</span>
         </div>
+
+        {priorityColor && (
+          <div
+            className="w-1.5 h-8 rounded-full shrink-0"
+            style={{ backgroundColor: priorityColor }}
+          />
+        )}
 
         <motion.button
           onClick={() => onToggle(todo.id, !todo.completed)}
@@ -157,7 +169,7 @@ export default function TodoItem({ todo, onToggle, onDelete, onUpdate }: TodoIte
               onChange={(e) => setEditTitle(e.target.value)}
               onKeyDown={handleKeyDown}
               onBlur={handleInputBlur}
-              className="w-full h-8 px-2 rounded-lg bg-[#F7F5F0] border-none shadow-inner-soft font-body-md text-on-surface focus:ring-2 focus:ring-primary focus:outline-none"
+              className="w-full h-8 px-2 rounded-lg tactile-input font-body-md"
             />
             <div className="flex gap-sm flex-wrap">
               <input
@@ -165,17 +177,28 @@ export default function TodoItem({ todo, onToggle, onDelete, onUpdate }: TodoIte
                 value={editDueDate}
                 onChange={(e) => setEditDueDate(e.target.value)}
                 onMouseDown={(e) => e.stopPropagation()}
-                className="h-7 px-2 rounded-lg bg-[#F7F5F0] border-none shadow-inner-soft font-label-sm text-on-surface-variant focus:ring-2 focus:ring-primary focus:outline-none text-[12px]"
+                className="h-7 px-2 rounded-lg tactile-input font-label-sm text-[12px]"
               />
               <select
                 value={editDuration}
                 onChange={(e) => setEditDuration(e.target.value)}
                 onMouseDown={(e) => e.stopPropagation()}
-                className="h-7 px-2 rounded-lg bg-[#F7F5F0] border-none shadow-inner-soft font-label-sm text-on-surface-variant focus:ring-2 focus:ring-primary focus:outline-none text-[12px]"
+                className="h-7 px-2 rounded-lg tactile-input font-label-sm text-[12px]"
               >
                 <option value="">Duration</option>
                 {DURATIONS.map((d) => (
                   <option key={d} value={d}>{formatDuration(d)}</option>
+                ))}
+              </select>
+              <select
+                value={editPriority}
+                onChange={(e) => setEditPriority(e.target.value)}
+                onMouseDown={(e) => e.stopPropagation()}
+                className="h-7 px-2 rounded-lg tactile-input font-label-sm text-[12px]"
+              >
+                <option value="">Priority</option>
+                {PRIORITIES.map((p) => (
+                  <option key={p.name} value={p.name}>{p.label}</option>
                 ))}
               </select>
               <div className="flex gap-xs">
@@ -239,7 +262,7 @@ export default function TodoItem({ todo, onToggle, onDelete, onUpdate }: TodoIte
           <div className="relative" ref={optionsRef}>
             <button
               onClick={() => setShowOptions(!showOptions)}
-              className="opacity-0 group-hover:opacity-100 transition-all text-on-surface-variant hover:text-on-surface p-sm rounded-lg hover:bg-[#F7F5F0]"
+              className="opacity-0 group-hover:opacity-100 transition-all text-on-surface-variant hover:text-on-surface p-sm rounded-lg hover:bg-surface-variant"
               aria-label="More options"
             >
               <span className="material-symbols-outlined text-[18px]">more_horiz</span>
@@ -252,14 +275,15 @@ export default function TodoItem({ todo, onToggle, onDelete, onUpdate }: TodoIte
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.95, y: -5 }}
                   transition={{ duration: 0.15 }}
-                  className="absolute right-0 top-full mt-1 bg-surface-container-lowest rounded-xl shadow-soft p-sm z-10 min-w-[120px]"
+                  className="absolute right-0 top-full mt-1 bg-surface rounded-xl p-sm z-10 min-w-[120px]"
+                  style={{ boxShadow: "0px 12px 32px rgba(113, 121, 118, 0.08)" }}
                 >
                   <button
                     onClick={() => {
                       setEditing(true);
                       setShowOptions(false);
                     }}
-                    className="w-full flex items-center gap-sm px-md py-sm rounded-lg hover:bg-[#F7F5F0] text-on-surface-variant text-[13px] font-medium transition-colors"
+                    className="w-full flex items-center gap-sm px-md py-sm rounded-lg hover:bg-surface-variant text-on-surface-variant text-[13px] font-medium transition-colors"
                   >
                     <span className="material-symbols-outlined text-[16px]">edit</span>
                     Edit

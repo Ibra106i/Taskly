@@ -18,7 +18,7 @@ import {
 } from "@dnd-kit/sortable";
 import { motion, AnimatePresence } from "motion/react";
 import { addTodo, toggleTodo, deleteTodo, updateTodo, clearCompleted } from "@/lib/todos";
-import { CATEGORIES, DURATIONS, formatDuration } from "@/lib/constants";
+import { CATEGORIES, DURATIONS, PRIORITIES, formatDuration } from "@/lib/constants";
 import TodoItem from "./TodoItem";
 
 interface Todo {
@@ -29,6 +29,7 @@ interface Todo {
   due_date: string | null;
   duration_minutes: number | null;
   category: string | null;
+  priority: string | null;
 }
 
 interface TodoListProps {
@@ -48,6 +49,7 @@ export default function TodoList({ initialTodos, userId }: TodoListProps) {
   const [formDueDate, setFormDueDate] = useState("");
   const [formDuration, setFormDuration] = useState("");
   const [formCategory, setFormCategory] = useState("");
+  const [formPriority, setFormPriority] = useState("");
   const [toast, setToast] = useState("");
 
   const sensors = useSensors(
@@ -57,15 +59,26 @@ export default function TodoList({ initialTodos, userId }: TodoListProps) {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      const input = document.querySelector<HTMLInputElement>('input[placeholder="What needs to be done?"]');
+
       if ((e.ctrlKey || e.metaKey) && e.key === "n") {
         e.preventDefault();
-        const input = document.querySelector<HTMLInputElement>('input[placeholder="What needs to be done?"]');
         input?.focus();
+      }
+
+      if ((e.ctrlKey || e.metaKey) && e.key === "d") {
+        e.preventDefault();
+        const firstActive = todos.find((t) => !t.completed);
+        if (firstActive) handleToggle(firstActive.id, true);
+      }
+
+      if (e.key === "Escape" && document.activeElement === input) {
+        input?.blur();
       }
     };
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, []);
+  }, [todos]);
 
   useEffect(() => {
     if (toast) {
@@ -110,12 +123,14 @@ export default function TodoList({ initialTodos, userId }: TodoListProps) {
         due_date: formDueDate ? new Date(formDueDate).toISOString() : null,
         duration_minutes: formDuration ? parseInt(formDuration) : null,
         category: formCategory || null,
+        priority: formPriority || null,
       });
       setTodos([data, ...todos]);
       setNewTodo("");
       setFormDueDate("");
       setFormDuration("");
       setFormCategory("");
+      setFormPriority("");
       setShowFormOptions(false);
       setToast("Todo added");
     } catch {
@@ -135,7 +150,7 @@ export default function TodoList({ initialTodos, userId }: TodoListProps) {
     }
   };
 
-  const handleUpdate = async (id: string, updates: { title?: string; due_date?: string | null; duration_minutes?: number | null; category?: string | null }) => {
+  const handleUpdate = async (id: string, updates: { title?: string; due_date?: string | null; duration_minutes?: number | null; category?: string | null; priority?: string | null }) => {
     try {
       await updateTodo(id, updates);
       setTodos(todos.map((t) => (t.id === id ? { ...t, ...updates } : t)));
@@ -166,10 +181,10 @@ export default function TodoList({ initialTodos, userId }: TodoListProps) {
     }
   };
 
-  const hasFormOptions = formDueDate || formDuration || formCategory;
+  const hasFormOptions = formDueDate || formDuration || formCategory || formPriority;
 
   return (
-    <div className="bg-surface-container-lowest rounded-3xl shadow-soft p-xl">
+    <div className="bg-surface rounded-3xl p-xl" style={{ boxShadow: "0px 12px 32px rgba(113, 121, 118, 0.08)" }}>
       <AnimatePresence>
         {toast && (
           <motion.div
@@ -196,10 +211,9 @@ export default function TodoList({ initialTodos, userId }: TodoListProps) {
                 setError("");
               }}
               placeholder="What needs to be done?"
-              className="w-full h-12 pl-12 pr-4 rounded-xl bg-[#F7F5F0] border-none focus:ring-2 focus:ring-primary focus:outline-none transition-all shadow-inner-soft font-body-md placeholder-on-surface-variant/50"
-              style={{ color: "#131d25", WebkitTextFillColor: "#131d25" }}
+              className="w-full h-12 pl-12 pr-4 rounded-xl tactile-input font-body-md"
             />
-            <span className="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-outline-variant text-[20px]">
+            <span className="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-on-surface-variant text-[20px]">
               add_task
             </span>
           </div>
@@ -221,7 +235,7 @@ export default function TodoList({ initialTodos, userId }: TodoListProps) {
             className={`flex items-center gap-xs px-sm py-xs rounded-lg text-[12px] font-medium transition-colors ${
               hasFormOptions
                 ? "text-primary bg-primary/10"
-                : "text-on-surface-variant hover:bg-[#F7F5F0]"
+                : "text-on-surface-variant hover:bg-surface-variant"
             }`}
           >
             <span className="material-symbols-outlined text-[14px]">
@@ -236,6 +250,7 @@ export default function TodoList({ initialTodos, userId }: TodoListProps) {
                 setFormDueDate("");
                 setFormDuration("");
                 setFormCategory("");
+                setFormPriority("");
               }}
               className="text-[12px] text-on-surface-variant hover:text-error transition-colors"
             >
@@ -258,16 +273,26 @@ export default function TodoList({ initialTodos, userId }: TodoListProps) {
                   type="date"
                   value={formDueDate}
                   onChange={(e) => setFormDueDate(e.target.value)}
-                  className="h-8 px-2 rounded-lg bg-[#F7F5F0] border-none shadow-inner-soft font-label-sm text-on-surface-variant focus:ring-2 focus:ring-primary focus:outline-none text-[12px]"
+                  className="h-8 px-2 rounded-lg tactile-input font-label-sm text-[12px]"
                 />
                 <select
                   value={formDuration}
                   onChange={(e) => setFormDuration(e.target.value)}
-                  className="h-8 px-2 rounded-lg bg-[#F7F5F0] border-none shadow-inner-soft font-label-sm text-on-surface-variant focus:ring-2 focus:ring-primary focus:outline-none text-[12px]"
+                  className="h-8 px-2 rounded-lg tactile-input font-label-sm text-[12px]"
                 >
                   <option value="">Duration</option>
                   {DURATIONS.map((d) => (
                     <option key={d} value={d}>{formatDuration(d)}</option>
+                  ))}
+                </select>
+                <select
+                  value={formPriority}
+                  onChange={(e) => setFormPriority(e.target.value)}
+                  className="h-8 px-2 rounded-lg tactile-input font-label-sm text-[12px]"
+                >
+                  <option value="">Priority</option>
+                  {PRIORITIES.map((p) => (
+                    <option key={p.name} value={p.name}>{p.label}</option>
                   ))}
                 </select>
                 <div className="flex gap-xs">
@@ -322,7 +347,7 @@ export default function TodoList({ initialTodos, userId }: TodoListProps) {
                 className={`relative px-3 py-1.5 rounded-full text-[12px] font-medium transition-colors ${
                   filter === tab
                     ? "text-on-primary"
-                    : "text-on-surface-variant hover:bg-[#F7F5F0]"
+                    : "text-on-surface-variant hover:bg-surface-variant"
                 }`}
               >
                 {filter === tab && (
@@ -361,7 +386,7 @@ export default function TodoList({ initialTodos, userId }: TodoListProps) {
           transition={{ delay: 0.2 }}
           className="text-center py-2xl"
         >
-          <span className="material-symbols-outlined text-[56px] text-outline-variant/40 mb-lg block">
+          <span className="material-symbols-outlined text-[56px] text-on-surface-variant/40 mb-lg block">
             checklist
           </span>
           <p className="font-body-lg text-on-surface-variant/60">
@@ -392,7 +417,7 @@ export default function TodoList({ initialTodos, userId }: TodoListProps) {
                       onUpdate={handleUpdate}
                     />
                     {index < filteredTodos.length - 1 && (
-                      <div className="h-px bg-[#F7F5F0] mx-lg" />
+                      <div className="h-px bg-surface-variant mx-lg" />
                     )}
                   </div>
                 ))}

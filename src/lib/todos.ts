@@ -11,6 +11,7 @@ export interface Todo {
   due_date: string | null;
   duration_minutes: number | null;
   category: string | null;
+  priority: string | null;
   user_id: string;
 }
 
@@ -20,6 +21,7 @@ export async function addTodo(
     due_date?: string | null;
     duration_minutes?: number | null;
     category?: string | null;
+    priority?: string | null;
   }
 ) {
   const { userId } = await auth();
@@ -34,6 +36,7 @@ export async function addTodo(
       due_date: options?.due_date ?? null,
       duration_minutes: options?.duration_minutes ?? null,
       category: options?.category ?? null,
+      priority: options?.priority ?? null,
     })
     .select()
     .single();
@@ -63,6 +66,7 @@ export async function updateTodo(
     due_date?: string | null;
     duration_minutes?: number | null;
     category?: string | null;
+    priority?: string | null;
   }
 ) {
   const { userId } = await auth();

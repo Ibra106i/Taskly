@@ -5,6 +5,14 @@ export const CATEGORIES = [
   { name: "Health", color: "#84a59d" },
 ];
 
+export const PRIORITIES = [
+  { name: "high", label: "High", color: "#ba1a1a" },
+  { name: "medium", label: "Medium", color: "#c1a87d" },
+  { name: "low", label: "Low", color: "#84a59d" },
+] as const;
+
+export type Priority = (typeof PRIORITIES)[number]["name"];
+
 export const DURATIONS = [5, 10, 15, 30, 45, 60, 90, 120];
 
 export function formatDuration(minutes: number): string {
@@ -37,4 +45,10 @@ export function getDueDateColor(dateStr: string): string {
   if (taskDate < today) return "text-error";
   if (taskDate.getTime() === today.getTime()) return "text-[#8c4e35]";
   return "text-on-surface-variant";
+}
+
+export function getPriorityColor(priority: string | null): string {
+  if (!priority) return "";
+  const p = PRIORITIES.find((pr) => pr.name === priority);
+  return p ? p.color : "";
 }
