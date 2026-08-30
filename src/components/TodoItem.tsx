@@ -107,7 +107,7 @@ export default function TodoItem({ todo, onToggle, onDelete, onUpdate }: TodoIte
     <div
       ref={setNodeRef}
       style={style}
-      className="py-lg px-lg hover:bg-background/50 transition-colors group rounded-xl"
+      className="py-lg px-lg hover:bg-[#F7F5F0]/50 transition-colors group rounded-xl"
     >
       <div className="flex items-center gap-md">
         <div
@@ -142,7 +142,7 @@ export default function TodoItem({ todo, onToggle, onDelete, onUpdate }: TodoIte
               onChange={(e) => setEditTitle(e.target.value)}
               onKeyDown={handleKeyDown}
               onBlur={handleInputBlur}
-              className="w-full h-8 px-2 rounded-lg bg-background border-none shadow-inner-soft font-body-md text-on-surface focus:ring-2 focus:ring-primary focus:outline-none"
+              className="w-full h-8 px-2 rounded-lg bg-[#F7F5F0] border-none shadow-inner-soft font-body-md text-on-surface focus:ring-2 focus:ring-primary focus:outline-none"
             />
             <div className="flex gap-sm flex-wrap">
               <input
@@ -150,13 +150,13 @@ export default function TodoItem({ todo, onToggle, onDelete, onUpdate }: TodoIte
                 value={editDueDate}
                 onChange={(e) => setEditDueDate(e.target.value)}
                 onMouseDown={(e) => e.stopPropagation()}
-                className="h-7 px-2 rounded-lg bg-background border-none shadow-inner-soft font-label-sm text-on-surface-variant focus:ring-2 focus:ring-primary focus:outline-none text-[12px]"
+                className="h-7 px-2 rounded-lg bg-[#F7F5F0] border-none shadow-inner-soft font-label-sm text-on-surface-variant focus:ring-2 focus:ring-primary focus:outline-none text-[12px]"
               />
               <select
                 value={editDuration}
                 onChange={(e) => setEditDuration(e.target.value)}
                 onMouseDown={(e) => e.stopPropagation()}
-                className="h-7 px-2 rounded-lg bg-background border-none shadow-inner-soft font-label-sm text-on-surface-variant focus:ring-2 focus:ring-primary focus:outline-none text-[12px]"
+                className="h-7 px-2 rounded-lg bg-[#F7F5F0] border-none shadow-inner-soft font-label-sm text-on-surface-variant focus:ring-2 focus:ring-primary focus:outline-none text-[12px]"
               >
                 <option value="">Duration</option>
                 {DURATIONS.map((d) => (
@@ -224,7 +224,7 @@ export default function TodoItem({ todo, onToggle, onDelete, onUpdate }: TodoIte
           <div className="relative" ref={optionsRef}>
             <button
               onClick={() => setShowOptions(!showOptions)}
-              className="opacity-0 group-hover:opacity-100 transition-all text-on-surface-variant hover:text-on-surface p-sm rounded-lg hover:bg-background"
+              className="opacity-0 group-hover:opacity-100 transition-all text-on-surface-variant hover:text-on-surface p-sm rounded-lg hover:bg-[#F7F5F0]"
               aria-label="More options"
             >
               <span className="material-symbols-outlined text-[18px]">more_horiz</span>
@@ -237,7 +237,7 @@ export default function TodoItem({ todo, onToggle, onDelete, onUpdate }: TodoIte
                     setEditing(true);
                     setShowOptions(false);
                   }}
-                  className="w-full flex items-center gap-sm px-md py-sm rounded-lg hover:bg-background text-on-surface-variant text-[13px] font-medium transition-colors"
+                  className="w-full flex items-center gap-sm px-md py-sm rounded-lg hover:bg-[#F7F5F0] text-on-surface-variant text-[13px] font-medium transition-colors"
                 >
                   <span className="material-symbols-outlined text-[16px]">edit</span>
                   Edit
