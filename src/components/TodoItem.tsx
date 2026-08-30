@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { CATEGORIES, DURATIONS, formatDuration, formatDate, getDueDateColor } from "@/lib/constants";
 
 interface Todo {
   id: string;
@@ -21,47 +22,6 @@ interface TodoItemProps {
   onUpdate: (id: string, updates: { title?: string; due_date?: string | null; duration_minutes?: number | null; category?: string | null }) => void;
 }
 
-const CATEGORIES = [
-  { name: "Work", color: "#45645e" },
-  { name: "Personal", color: "#8c4e35" },
-  { name: "School", color: "#7b554d" },
-  { name: "Health", color: "#84a59d" },
-];
-
-const DURATIONS = [5, 10, 15, 30, 45, 60, 90, 120];
-
-function formatDate(dateStr: string): string {
-  const date = new Date(dateStr);
-  const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  const taskDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-
-  if (taskDate.getTime() === today.getTime()) return "Today";
-  if (taskDate.getTime() === tomorrow.getTime()) return "Tomorrow";
-  if (taskDate < today) return "Overdue";
-  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-}
-
-function getDueDateColor(dateStr: string): string {
-  const date = new Date(dateStr);
-  const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const taskDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-
-  if (taskDate < today) return "text-error";
-  if (taskDate.getTime() === today.getTime()) return "text-[#8c4e35]";
-  return "text-on-surface-variant";
-}
-
-function formatDuration(minutes: number): string {
-  if (minutes < 60) return `${minutes}m`;
-  const h = Math.floor(minutes / 60);
-  const m = minutes % 60;
-  return m > 0 ? `${h}h ${m}m` : `${h}h`;
-}
-
 export default function TodoItem({ todo, onToggle, onDelete, onUpdate }: TodoItemProps) {
   const [editing, setEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(todo.title);
@@ -71,6 +31,7 @@ export default function TodoItem({ todo, onToggle, onDelete, onUpdate }: TodoIte
   const [showOptions, setShowOptions] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const optionsRef = useRef<HTMLDivElement>(null);
+  const editContainerRef = useRef<HTMLDivElement>(null);
 
   const {
     attributes,
@@ -131,8 +92,13 @@ export default function TodoItem({ todo, onToggle, onDelete, onUpdate }: TodoIte
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") saveEdit();
+    if (e.key === "Enter" && !e.shiftKey) saveEdit();
     if (e.key === "Escape") cancelEdit();
+  };
+
+  const handleInputBlur = (e: React.FocusEvent) => {
+    if (editContainerRef.current?.contains(e.relatedTarget as Node)) return;
+    saveEdit();
   };
 
   const categoryObj = todo.category ? CATEGORIES.find((c) => c.name === todo.category) : null;
@@ -141,7 +107,7 @@ export default function TodoItem({ todo, onToggle, onDelete, onUpdate }: TodoIte
     <div
       ref={setNodeRef}
       style={style}
-      className="py-lg px-lg hover:bg-[#F7F5F0]/50 transition-colors group rounded-xl"
+      className="py-lg px-lg hover:bg-background/50 transition-colors group rounded-xl"
     >
       <div className="flex items-center gap-md">
         <div
@@ -168,27 +134,29 @@ export default function TodoItem({ todo, onToggle, onDelete, onUpdate }: TodoIte
         </button>
 
         {editing ? (
-          <div className="flex-1 flex flex-col gap-sm">
+          <div ref={editContainerRef} className="flex-1 flex flex-col gap-sm">
             <input
               ref={inputRef}
               type="text"
               value={editTitle}
               onChange={(e) => setEditTitle(e.target.value)}
               onKeyDown={handleKeyDown}
-              onBlur={saveEdit}
-              className="w-full h-8 px-2 rounded-lg bg-[#F7F5F0] border-none shadow-inner-soft font-body-md text-on-surface focus:ring-2 focus:ring-primary focus:outline-none"
+              onBlur={handleInputBlur}
+              className="w-full h-8 px-2 rounded-lg bg-background border-none shadow-inner-soft font-body-md text-on-surface focus:ring-2 focus:ring-primary focus:outline-none"
             />
             <div className="flex gap-sm flex-wrap">
               <input
                 type="date"
                 value={editDueDate}
                 onChange={(e) => setEditDueDate(e.target.value)}
-                className="h-7 px-2 rounded-lg bg-[#F7F5F0] border-none shadow-inner-soft font-label-sm text-on-surface-variant focus:ring-2 focus:ring-primary focus:outline-none text-[12px]"
+                onMouseDown={(e) => e.stopPropagation()}
+                className="h-7 px-2 rounded-lg bg-background border-none shadow-inner-soft font-label-sm text-on-surface-variant focus:ring-2 focus:ring-primary focus:outline-none text-[12px]"
               />
               <select
                 value={editDuration}
                 onChange={(e) => setEditDuration(e.target.value)}
-                className="h-7 px-2 rounded-lg bg-[#F7F5F0] border-none shadow-inner-soft font-label-sm text-on-surface-variant focus:ring-2 focus:ring-primary focus:outline-none text-[12px]"
+                onMouseDown={(e) => e.stopPropagation()}
+                className="h-7 px-2 rounded-lg bg-background border-none shadow-inner-soft font-label-sm text-on-surface-variant focus:ring-2 focus:ring-primary focus:outline-none text-[12px]"
               >
                 <option value="">Duration</option>
                 {DURATIONS.map((d) => (
@@ -200,6 +168,7 @@ export default function TodoItem({ todo, onToggle, onDelete, onUpdate }: TodoIte
                   <button
                     key={cat.name}
                     type="button"
+                    onMouseDown={(e) => e.preventDefault()}
                     onClick={() => setEditCategory(editCategory === cat.name ? "" : cat.name)}
                     className={`h-7 px-2 rounded-full text-[11px] font-medium transition-all ${
                       editCategory === cat.name
@@ -255,7 +224,7 @@ export default function TodoItem({ todo, onToggle, onDelete, onUpdate }: TodoIte
           <div className="relative" ref={optionsRef}>
             <button
               onClick={() => setShowOptions(!showOptions)}
-              className="opacity-0 group-hover:opacity-100 transition-all text-on-surface-variant hover:text-on-surface p-sm rounded-lg hover:bg-[#F7F5F0]"
+              className="opacity-0 group-hover:opacity-100 transition-all text-on-surface-variant hover:text-on-surface p-sm rounded-lg hover:bg-background"
               aria-label="More options"
             >
               <span className="material-symbols-outlined text-[18px]">more_horiz</span>
@@ -268,7 +237,7 @@ export default function TodoItem({ todo, onToggle, onDelete, onUpdate }: TodoIte
                     setEditing(true);
                     setShowOptions(false);
                   }}
-                  className="w-full flex items-center gap-sm px-md py-sm rounded-lg hover:bg-[#F7F5F0] text-on-surface-variant text-[13px] font-medium transition-colors"
+                  className="w-full flex items-center gap-sm px-md py-sm rounded-lg hover:bg-background text-on-surface-variant text-[13px] font-medium transition-colors"
                 >
                   <span className="material-symbols-outlined text-[16px]">edit</span>
                   Edit

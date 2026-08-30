@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   DndContext,
   closestCenter,
@@ -17,6 +17,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { addTodo, toggleTodo, deleteTodo, updateTodo, clearCompleted } from "@/lib/todos";
+import { CATEGORIES, DURATIONS, formatDuration } from "@/lib/constants";
 import TodoItem from "./TodoItem";
 
 interface Todo {
@@ -34,22 +35,6 @@ interface TodoListProps {
   userId: string;
 }
 
-const CATEGORIES = [
-  { name: "Work", color: "#45645e" },
-  { name: "Personal", color: "#8c4e35" },
-  { name: "School", color: "#7b554d" },
-  { name: "Health", color: "#84a59d" },
-];
-
-const DURATIONS = [5, 10, 15, 30, 45, 60, 90, 120];
-
-function formatDuration(minutes: number): string {
-  if (minutes < 60) return `${minutes}m`;
-  const h = Math.floor(minutes / 60);
-  const m = minutes % 60;
-  return m > 0 ? `${h}h ${m}m` : `${h}h`;
-}
-
 type FilterTab = "all" | "active" | "completed";
 
 export default function TodoList({ initialTodos, userId }: TodoListProps) {
@@ -62,11 +47,31 @@ export default function TodoList({ initialTodos, userId }: TodoListProps) {
   const [formDueDate, setFormDueDate] = useState("");
   const [formDuration, setFormDuration] = useState("");
   const [formCategory, setFormCategory] = useState("");
+  const [toast, setToast] = useState("");
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "n") {
+        e.preventDefault();
+        const input = document.querySelector<HTMLInputElement>('input[placeholder="What needs to be done?"]');
+        input?.focus();
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  useEffect(() => {
+    if (toast) {
+      const t = setTimeout(() => setToast(""), 2000);
+      return () => clearTimeout(t);
+    }
+  }, [toast]);
 
   const filteredTodos = todos.filter((t) => {
     if (filter === "active") return !t.completed;
@@ -111,6 +116,7 @@ export default function TodoList({ initialTodos, userId }: TodoListProps) {
       setFormDuration("");
       setFormCategory("");
       setShowFormOptions(false);
+      setToast("Todo added");
     } catch {
       setError("Failed to add todo. Please try again.");
     } finally {
@@ -122,6 +128,7 @@ export default function TodoList({ initialTodos, userId }: TodoListProps) {
     try {
       await toggleTodo(id, completed);
       setTodos(todos.map((t) => (t.id === id ? { ...t, completed } : t)));
+      setToast(completed ? "Marked complete" : "Marked active");
     } catch {
       setError("Failed to update todo.");
     }
@@ -140,6 +147,7 @@ export default function TodoList({ initialTodos, userId }: TodoListProps) {
     try {
       await deleteTodo(id);
       setTodos(todos.filter((t) => t.id !== id));
+      setToast("Todo deleted");
     } catch {
       setError("Failed to delete todo.");
     }
@@ -149,7 +157,9 @@ export default function TodoList({ initialTodos, userId }: TodoListProps) {
     if (!confirm("Delete all completed todos?")) return;
     try {
       await clearCompleted();
+      const count = completedCount;
       setTodos(todos.filter((t) => !t.completed));
+      setToast(`Cleared ${count} completed`);
     } catch {
       setError("Failed to clear completed todos.");
     }
@@ -159,6 +169,13 @@ export default function TodoList({ initialTodos, userId }: TodoListProps) {
 
   return (
     <div className="bg-surface-container-lowest rounded-3xl shadow-soft p-xl">
+      {toast && (
+        <div className="mb-lg flex items-center gap-sm bg-primary/10 text-primary rounded-xl p-md font-label-md animate-in fade-in slide-in-from-top-2 duration-200">
+          <span className="material-symbols-outlined text-[16px]">check_circle</span>
+          {toast}
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} className="mb-lg">
         <div className="flex gap-md">
           <div className="flex-1 relative">
@@ -170,7 +187,7 @@ export default function TodoList({ initialTodos, userId }: TodoListProps) {
                 setError("");
               }}
               placeholder="What needs to be done?"
-              className="w-full h-12 pl-12 pr-4 rounded-xl bg-[#F7F5F0] border-none focus:ring-2 focus:ring-primary focus:outline-none transition-all shadow-inner-soft font-body-md placeholder-on-surface-variant/50"
+              className="w-full h-12 pl-12 pr-4 rounded-xl bg-background border-none focus:ring-2 focus:ring-primary focus:outline-none transition-all shadow-inner-soft font-body-md placeholder-on-surface-variant/50"
               style={{ color: "#131d25", WebkitTextFillColor: "#131d25" }}
             />
             <span className="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-outline-variant text-[20px]">
@@ -194,7 +211,7 @@ export default function TodoList({ initialTodos, userId }: TodoListProps) {
             className={`flex items-center gap-xs px-sm py-xs rounded-lg text-[12px] font-medium transition-colors ${
               hasFormOptions
                 ? "text-primary bg-primary/10"
-                : "text-on-surface-variant hover:bg-[#F7F5F0]"
+                : "text-on-surface-variant hover:bg-background"
             }`}
           >
             <span className="material-symbols-outlined text-[14px]">
@@ -223,12 +240,12 @@ export default function TodoList({ initialTodos, userId }: TodoListProps) {
               type="date"
               value={formDueDate}
               onChange={(e) => setFormDueDate(e.target.value)}
-              className="h-8 px-2 rounded-lg bg-[#F7F5F0] border-none shadow-inner-soft font-label-sm text-on-surface-variant focus:ring-2 focus:ring-primary focus:outline-none text-[12px]"
+              className="h-8 px-2 rounded-lg bg-background border-none shadow-inner-soft font-label-sm text-on-surface-variant focus:ring-2 focus:ring-primary focus:outline-none text-[12px]"
             />
             <select
               value={formDuration}
               onChange={(e) => setFormDuration(e.target.value)}
-              className="h-8 px-2 rounded-lg bg-[#F7F5F0] border-none shadow-inner-soft font-label-sm text-on-surface-variant focus:ring-2 focus:ring-primary focus:outline-none text-[12px]"
+              className="h-8 px-2 rounded-lg bg-background border-none shadow-inner-soft font-label-sm text-on-surface-variant focus:ring-2 focus:ring-primary focus:outline-none text-[12px]"
             >
               <option value="">Duration</option>
               {DURATIONS.map((d) => (
@@ -277,7 +294,7 @@ export default function TodoList({ initialTodos, userId }: TodoListProps) {
                 className={`px-3 py-1.5 rounded-full text-[12px] font-medium transition-all ${
                   filter === tab
                     ? "bg-primary text-on-primary"
-                    : "text-on-surface-variant hover:bg-[#F7F5F0]"
+                    : "text-on-surface-variant hover:bg-background"
                 }`}
               >
                 {tab.charAt(0).toUpperCase() + tab.slice(1)}
@@ -327,7 +344,7 @@ export default function TodoList({ initialTodos, userId }: TodoListProps) {
                     onUpdate={handleUpdate}
                   />
                   {index < filteredTodos.length - 1 && (
-                    <div className="h-px bg-[#F7F5F0] mx-lg" />
+                    <div className="h-px bg-background mx-lg" />
                   )}
                 </div>
               ))}
