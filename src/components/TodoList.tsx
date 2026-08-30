@@ -274,12 +274,12 @@ export default function TodoList({ initialTodos, userId }: TodoListProps) {
                     type="date"
                     value={formDueDate}
                     onChange={(e) => setFormDueDate(e.target.value)}
-                    className="h-8 px-2 rounded-lg tactile-input font-label-sm text-[12px] w-auto"
+                    className="h-8 tactile-input-inline text-[12px]"
                   />
                   <select
                     value={formDuration}
                     onChange={(e) => setFormDuration(e.target.value)}
-                    className="h-8 px-2 rounded-lg tactile-input font-label-sm text-[12px] w-auto min-w-[100px]"
+                    className="h-8 tactile-input-inline text-[12px] min-w-[100px]"
                   >
                     <option value="">Duration</option>
                     {DURATIONS.map((d) => (
@@ -289,7 +289,7 @@ export default function TodoList({ initialTodos, userId }: TodoListProps) {
                   <select
                     value={formPriority}
                     onChange={(e) => setFormPriority(e.target.value)}
-                    className="h-8 px-2 rounded-lg tactile-input font-label-sm text-[12px] w-auto min-w-[100px]"
+                    className="h-8 tactile-input-inline text-[12px] min-w-[100px]"
                   >
                     <option value="">Priority</option>
                     {PRIORITIES.map((p) => (

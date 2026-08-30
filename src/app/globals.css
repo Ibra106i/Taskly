@@ -61,6 +61,13 @@ input:-webkit-autofill:focus {
     -webkit-text-fill-color: var(--foreground) !important;
     box-shadow: inset 0px 1px 3px rgba(113, 121, 118, 0.1);
   }
+  .tactile-input-inline {
+    @apply rounded-lg border-none px-2 font-label-sm focus:ring-2 focus:ring-primary-container focus:outline-none transition-all duration-200;
+    background-color: var(--surface-variant);
+    color: var(--foreground) !important;
+    -webkit-text-fill-color: var(--foreground) !important;
+    box-shadow: inset 0px 1px 3px rgba(113, 121, 118, 0.1);
+  }
   .tactile-input:-webkit-autofill,
   .tactile-input:-webkit-autofill:hover,
   .tactile-input:-webkit-autofill:focus {

@@ -177,13 +177,13 @@ export default function TodoItem({ todo, onToggle, onDelete, onUpdate }: TodoIte
                 value={editDueDate}
                 onChange={(e) => setEditDueDate(e.target.value)}
                 onMouseDown={(e) => e.stopPropagation()}
-                className="h-7 px-2 rounded-lg tactile-input font-label-sm text-[12px] w-auto"
+                className="h-7 tactile-input-inline text-[12px]"
               />
               <select
                 value={editDuration}
                 onChange={(e) => setEditDuration(e.target.value)}
                 onMouseDown={(e) => e.stopPropagation()}
-                className="h-7 px-2 rounded-lg tactile-input font-label-sm text-[12px] w-auto min-w-[80px]"
+                className="h-7 tactile-input-inline text-[12px] min-w-[80px]"
               >
                 <option value="">Duration</option>
                 {DURATIONS.map((d) => (
@@ -194,7 +194,7 @@ export default function TodoItem({ todo, onToggle, onDelete, onUpdate }: TodoIte
                 value={editPriority}
                 onChange={(e) => setEditPriority(e.target.value)}
                 onMouseDown={(e) => e.stopPropagation()}
-                className="h-7 px-2 rounded-lg tactile-input font-label-sm text-[12px] w-auto min-w-[80px]"
+                className="h-7 tactile-input-inline text-[12px] min-w-[80px]"
               >
                 <option value="">Priority</option>
                 {PRIORITIES.map((p) => (
