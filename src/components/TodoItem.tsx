@@ -203,7 +203,7 @@ export default function TodoItem({ todo, onToggle, onDelete, onUpdate }: TodoIte
               </select>
             </div>
             <div className="flex gap-xs flex-wrap">
-                {CATEGORIES.map((cat) => (
+              {CATEGORIES.map((cat) => (
                   <button
                     key={cat.name}
                     type="button"
@@ -221,7 +221,6 @@ export default function TodoItem({ todo, onToggle, onDelete, onUpdate }: TodoIte
                     {cat.name}
                   </button>
                 ))}
-              </div>
             </div>
           </div>
         ) : (
