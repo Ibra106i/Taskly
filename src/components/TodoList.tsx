@@ -81,12 +81,19 @@ export default function TodoList({ initialTodos, initialProjects, userId }: Todo
     }
   }, [toast]);
 
-  const now = new Date();
-  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const todayEnd = new Date(todayStart);
-  todayEnd.setDate(todayEnd.getDate() + 1);
-  const weekEnd = new Date(todayStart);
-  weekEnd.setDate(weekEnd.getDate() + 7);
+  const [dateRange, setDateRange] = useState({ todayStart: new Date(0), todayEnd: new Date(0), weekEnd: new Date(0) });
+
+  useEffect(() => {
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const todayEnd = new Date(todayStart);
+    todayEnd.setDate(todayEnd.getDate() + 1);
+    const weekEnd = new Date(todayStart);
+    weekEnd.setDate(weekEnd.getDate() + 7);
+    setDateRange({ todayStart, todayEnd, weekEnd });
+  }, []);
+
+  const { todayStart, todayEnd, weekEnd } = dateRange;
 
   const rootTodos = useMemo(() => todos.filter((t) => !t.parent_id), [todos]);
 
