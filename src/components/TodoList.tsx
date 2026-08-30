@@ -17,28 +17,42 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { motion, AnimatePresence } from "motion/react";
-import { Todo, Project } from "@/lib/types";
+import { Todo, Project, Label, Section } from "@/lib/types";
 import { addTodo, toggleTodo, deleteTodo, updateTodo, clearCompleted } from "@/lib/todos";
 import { DURATIONS, PRIORITIES, RECURRENCE_OPTIONS, formatDuration } from "@/lib/constants";
 import TodoItem from "./TodoItem";
 import ProjectSidebar from "./ProjectSidebar";
+import SectionComponent from "./Section";
+import { addSection } from "@/lib/sections";
 
 interface TodoListProps {
   initialTodos: Todo[];
   initialProjects: Project[];
-  userId: string;
+  initialLabels: Label[];
+  initialSections: Section[];
+  initialTodoLabels: Record<string, string[]>;
 }
 
 type ViewTab = "inbox" | "today" | "upcoming" | "all";
 
-export default function TodoList({ initialTodos, initialProjects, userId }: TodoListProps) {
+export default function TodoList({
+  initialTodos,
+  initialProjects,
+  initialLabels,
+  initialSections,
+  initialTodoLabels,
+}: TodoListProps) {
   const [todos, setTodos] = useState<Todo[]>(initialTodos);
   const [projects, setProjects] = useState<Project[]>(initialProjects);
+  const [labels, setLabels] = useState<Label[]>(initialLabels);
+  const [sections, setSections] = useState<Section[]>(initialSections);
+  const [todoLabelsMap, setTodoLabelsMap] = useState<Record<string, string[]>>(initialTodoLabels);
   const [newTodo, setNewTodo] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [view, setView] = useState<ViewTab>("inbox");
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
+  const [selectedLabelId, setSelectedLabelId] = useState<string | null>(null);
   const [showFormOptions, setShowFormOptions] = useState(false);
   const [formDueDate, setFormDueDate] = useState("");
   const [formDuration, setFormDuration] = useState("");
@@ -120,10 +134,13 @@ export default function TodoList({ initialTodos, initialProjects, userId }: Todo
       result = result.filter((t) => t.project_id === selectedProjectId);
     }
 
-    return result;
-  }, [rootTodos, view, selectedProjectId, todayStart, todayEnd, weekEnd]);
+    if (selectedLabelId) {
+      result = result.filter((t) => (todoLabelsMap[t.id] || []).includes(selectedLabelId));
+    }
 
-  const activeCount = rootTodos.filter((t) => !t.completed).length;
+    return result;
+  }, [rootTodos, view, selectedProjectId, selectedLabelId, todayStart, todayEnd, weekEnd, todoLabelsMap]);
+
   const completedCount = rootTodos.filter((t) => t.completed).length;
 
   const todoCounts = useMemo(() => {
@@ -236,6 +253,34 @@ export default function TodoList({ initialTodos, initialProjects, userId }: Todo
     }
   };
 
+  const handleAddTodoToSection = async (title: string, sectionId: string) => {
+    try {
+      const data = await addTodo(title, {
+        project_id: selectedProjectId,
+        section_id: sectionId,
+      });
+      setTodos([data, ...todos]);
+      setToast("Todo added");
+    } catch {
+      setError("Failed to add todo.");
+    }
+  };
+
+  const handleAddSection = async () => {
+    if (!selectedProjectId) return;
+    try {
+      const section = await addSection(selectedProjectId, "New Section");
+      setSections([...sections, section]);
+      setToast("Section added");
+    } catch {
+      setError("Failed to add section.");
+    }
+  };
+
+  const handleTodoLabelIdsChange = (todoId: string, labelIds: string[]) => {
+    setTodoLabelsMap((prev) => ({ ...prev, [todoId]: labelIds }));
+  };
+
   const hasFormOptions = formDueDate || formDuration || formPriority || formRecurrence;
 
   const viewTabs: { id: ViewTab; label: string; icon: string }[] = [
@@ -244,6 +289,24 @@ export default function TodoList({ initialTodos, initialProjects, userId }: Todo
     { id: "upcoming", label: "Upcoming", icon: "date_range" },
     { id: "all", label: "All", icon: "checklist" },
   ];
+
+  const projectSections = useMemo(
+    () => sections.filter((s) => s.project_id === selectedProjectId).sort((a, b) => a.position - b.position),
+    [sections, selectedProjectId]
+  );
+
+  const unsectionedTodos = useMemo(
+    () => filteredTodos.filter((t) => !t.section_id),
+    [filteredTodos]
+  );
+
+  const sectionTodosMap = useMemo(() => {
+    const map: Record<string, Todo[]> = {};
+    projectSections.forEach((s) => {
+      map[s.id] = filteredTodos.filter((t) => t.section_id === s.id);
+    });
+    return map;
+  }, [filteredTodos, projectSections]);
 
   return (
     <div className="flex gap-lg">
@@ -255,9 +318,9 @@ export default function TodoList({ initialTodos, initialProjects, userId }: Todo
               {viewTabs.map((tab) => (
                 <button
                   key={tab.id}
-                  onClick={() => { setView(tab.id); setSelectedProjectId(null); }}
+                  onClick={() => { setView(tab.id); setSelectedProjectId(null); setSelectedLabelId(null); }}
                   className={`w-full flex items-center gap-sm px-md py-sm rounded-lg text-[13px] font-medium transition-colors ${
-                    view === tab.id && !selectedProjectId
+                    view === tab.id && !selectedProjectId && !selectedLabelId
                       ? "bg-primary/10 text-primary"
                       : "text-on-surface-variant hover:bg-surface-variant"
                   }`}
@@ -273,11 +336,36 @@ export default function TodoList({ initialTodos, initialProjects, userId }: Todo
             <ProjectSidebar
               projects={projects}
               selectedProjectId={selectedProjectId}
-              onSelectProject={(id) => { setSelectedProjectId(id); setView("inbox"); }}
+              onSelectProject={(id) => { setSelectedProjectId(id); setSelectedLabelId(null); setView("inbox"); }}
               onProjectsChange={setProjects}
               todoCounts={todoCounts}
             />
           </div>
+          {labels.length > 0 && (
+            <div className="border-t border-outline-variant/30 pt-md mt-md">
+              <p className="font-label-sm text-on-surface-variant/60 uppercase tracking-wider mb-sm px-md">Labels</p>
+              <div className="space-y-xs">
+                {labels.map((label) => (
+                  <button
+                    key={label.id}
+                    onClick={() => {
+                      setSelectedLabelId(selectedLabelId === label.id ? null : label.id);
+                      setSelectedProjectId(null);
+                      setView("inbox");
+                    }}
+                    className={`w-full flex items-center gap-sm px-md py-sm rounded-lg text-[13px] font-medium transition-colors ${
+                      selectedLabelId === label.id
+                        ? "bg-primary/10 text-primary"
+                        : "text-on-surface-variant hover:bg-surface-variant"
+                    }`}
+                  >
+                    <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: label.color }} />
+                    {label.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </aside>
 
@@ -302,9 +390,9 @@ export default function TodoList({ initialTodos, initialProjects, userId }: Todo
             {viewTabs.map((tab) => (
               <button
                 key={tab.id}
-                onClick={() => { setView(tab.id); setSelectedProjectId(null); }}
+                onClick={() => { setView(tab.id); setSelectedProjectId(null); setSelectedLabelId(null); }}
                 className={`flex items-center gap-xs px-3 py-1.5 rounded-full text-[12px] font-medium transition-colors whitespace-nowrap ${
-                  view === tab.id && !selectedProjectId
+                  view === tab.id && !selectedProjectId && !selectedLabelId
                     ? "bg-primary text-on-primary"
                     : "text-on-surface-variant hover:bg-surface-variant"
                 }`}
@@ -484,6 +572,85 @@ export default function TodoList({ initialTodos, initialProjects, userId }: Todo
                 {view === "today" ? "Nothing due today." : view === "upcoming" ? "Nothing due this week." : "All done!"}
               </p>
             </motion.div>
+          ) : selectedProjectId && projectSections.length > 0 ? (
+            <div>
+              {projectSections.map((section) => (
+                <SectionComponent
+                  key={section.id}
+                  section={section}
+                  todos={sectionTodosMap[section.id] || []}
+                  labels={labels}
+                  todoLabelsMap={todoLabelsMap}
+                  onToggle={handleToggle}
+                  onDelete={handleDelete}
+                  onUpdate={handleUpdate}
+                  onAddTodo={handleAddTodoToSection}
+                  onAddSubTodo={handleAddSubTodo}
+                  onLabelsChange={setLabels}
+                  onTodoLabelIdsChange={handleTodoLabelIdsChange}
+                  onSectionChange={setSections}
+                  allSections={sections}
+                />
+              ))}
+              {unsectionedTodos.length > 0 && (
+                <div className="mt-md">
+                  <p className="text-sm font-medium text-on-surface-variant mb-sm">Unsectioned</p>
+                  <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                    <SortableContext items={unsectionedTodos.map((t) => t.id)} strategy={verticalListSortingStrategy}>
+                      <div className="flex flex-col">
+                        <AnimatePresence mode="popLayout">
+                          {unsectionedTodos.map((todo) => {
+                            const subTodos = getSubTodos(todo.id);
+                            return (
+                              <div key={todo.id}>
+                                <TodoItem
+                                  todo={todo}
+                                  labels={labels}
+                                  todoLabelIds={todoLabelsMap[todo.id] || []}
+                                  onToggle={handleToggle}
+                                  onDelete={handleDelete}
+                                  onUpdate={handleUpdate}
+                                  onAddSubTodo={handleAddSubTodo}
+                                  onLabelsChange={setLabels}
+                                  onTodoLabelIdsChange={handleTodoLabelIdsChange}
+                                />
+                                {subTodos.length > 0 && (
+                                  <div className="ml-12">
+                                    {subTodos.map((sub) => (
+                                      <div key={sub.id}>
+                                        <TodoItem
+                                          todo={sub}
+                                          labels={labels}
+                                          todoLabelIds={todoLabelsMap[sub.id] || []}
+                                          onToggle={handleToggle}
+                                          onDelete={handleDelete}
+                                          onUpdate={handleUpdate}
+                                          onAddSubTodo={handleAddSubTodo}
+                                          onLabelsChange={setLabels}
+                                          onTodoLabelIdsChange={handleTodoLabelIdsChange}
+                                          depth={1}
+                                        />
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </AnimatePresence>
+                      </div>
+                    </SortableContext>
+                  </DndContext>
+                </div>
+              )}
+              <button
+                onClick={handleAddSection}
+                className="flex items-center gap-sm mt-md text-sm text-on-surface-variant hover:text-on-surface transition-colors"
+              >
+                <span className="material-symbols-outlined text-base">add</span>
+                Add section
+              </button>
+            </div>
           ) : (
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
               <SortableContext items={filteredTodos.map((t) => t.id)} strategy={verticalListSortingStrategy}>
@@ -495,10 +662,14 @@ export default function TodoList({ initialTodos, initialProjects, userId }: Todo
                         <div key={todo.id}>
                           <TodoItem
                             todo={todo}
+                            labels={labels}
+                            todoLabelIds={todoLabelsMap[todo.id] || []}
                             onToggle={handleToggle}
                             onDelete={handleDelete}
                             onUpdate={handleUpdate}
                             onAddSubTodo={handleAddSubTodo}
+                            onLabelsChange={setLabels}
+                            onTodoLabelIdsChange={handleTodoLabelIdsChange}
                           />
                           {subTodos.length > 0 && (
                             <div className="ml-12">
@@ -506,10 +677,14 @@ export default function TodoList({ initialTodos, initialProjects, userId }: Todo
                                 <div key={sub.id}>
                                   <TodoItem
                                     todo={sub}
+                                    labels={labels}
+                                    todoLabelIds={todoLabelsMap[sub.id] || []}
                                     onToggle={handleToggle}
                                     onDelete={handleDelete}
                                     onUpdate={handleUpdate}
                                     onAddSubTodo={handleAddSubTodo}
+                                    onLabelsChange={setLabels}
+                                    onTodoLabelIdsChange={handleTodoLabelIdsChange}
                                     depth={1}
                                   />
                                 </div>

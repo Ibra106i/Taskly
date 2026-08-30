@@ -8,6 +8,12 @@ export type Priority = (typeof PRIORITIES)[number]["name"];
 
 export const DURATIONS = [5, 10, 15, 30, 45, 60, 90, 120];
 
+export const LABEL_COLORS = [
+  "#ba1a1a", "#c1a87d", "#84a59d", "#45645e",
+  "#6366f1", "#ec4899", "#f59e0b", "#10b981",
+  "#3b82f6", "#8b5cf6", "#ef4444", "#6b7280",
+];
+
 export const RECURRENCE_OPTIONS = [
   { value: "daily", label: "Every day" },
   { value: "weekly:monday", label: "Every Monday" },

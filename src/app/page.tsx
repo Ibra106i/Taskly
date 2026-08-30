@@ -15,7 +15,7 @@ export default async function Home() {
 
   const supabase = createSupabaseClient();
 
-  const [todosResult, projectsResult] = await Promise.all([
+  const [todosResult, projectsResult, labelsResult, sectionsResult, todoLabelsResult] = await Promise.all([
     supabase
       .from("todos")
       .select("*")
@@ -26,10 +26,32 @@ export default async function Home() {
       .select("*")
       .eq("user_id", userId)
       .order("name"),
+    supabase
+      .from("labels")
+      .select("*")
+      .eq("user_id", userId)
+      .order("name"),
+    supabase
+      .from("sections")
+      .select("*")
+      .eq("user_id", userId)
+      .order("position"),
+    supabase
+      .from("todo_labels")
+      .select("*"),
   ]);
 
   const todos = todosResult.data || [];
   const projects = projectsResult.data || [];
+  const labels = labelsResult.data || [];
+  const sections = sectionsResult.data || [];
+  const todoLabels = todoLabelsResult.data || [];
+
+  const todoLabelsMap: Record<string, string[]> = {};
+  todoLabels.forEach((tl) => {
+    if (!todoLabelsMap[tl.todo_id]) todoLabelsMap[tl.todo_id] = [];
+    todoLabelsMap[tl.todo_id].push(tl.label_id);
+  });
 
   const completedCount = todos.filter((t) => t.completed && !t.parent_id).length;
   const totalCount = todos.filter((t) => !t.parent_id).length;
@@ -68,7 +90,13 @@ export default async function Home() {
           </div>
         )}
 
-        <TodoList initialTodos={todos} initialProjects={projects} userId={userId} />
+        <TodoList
+          initialTodos={todos}
+          initialProjects={projects}
+          initialLabels={labels}
+          initialSections={sections}
+          initialTodoLabels={todoLabelsMap}
+        />
       </main>
     </div>
   );

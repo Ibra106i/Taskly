@@ -4,19 +4,38 @@ import { useState, useRef, useEffect } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { motion, AnimatePresence } from "motion/react";
-import { Todo } from "@/lib/types";
+import { Todo, Label } from "@/lib/types";
 import { DURATIONS, PRIORITIES, RECURRENCE_OPTIONS, formatDuration, formatDate, getDueDateColor, getPriorityColor, formatRecurrence } from "@/lib/constants";
+import LabelBadge from "./LabelBadge";
+import LabelPicker from "./LabelPicker";
+import CommentSection from "./CommentSection";
+import { setTodoLabels } from "@/lib/labels";
 
 interface TodoItemProps {
   todo: Todo;
+  labels: Label[];
+  todoLabelIds: string[];
   onToggle: (id: string, completed: boolean) => void;
   onDelete: (id: string) => void;
   onUpdate: (id: string, updates: Partial<Todo>) => void;
   onAddSubTodo: (parentId: string) => void;
+  onLabelsChange: (labels: Label[]) => void;
+  onTodoLabelIdsChange: (todoId: string, labelIds: string[]) => void;
   depth?: number;
 }
 
-export default function TodoItem({ todo, onToggle, onDelete, onUpdate, onAddSubTodo, depth = 0 }: TodoItemProps) {
+export default function TodoItem({
+  todo,
+  labels,
+  todoLabelIds,
+  onToggle,
+  onDelete,
+  onUpdate,
+  onAddSubTodo,
+  onLabelsChange,
+  onTodoLabelIdsChange,
+  depth = 0,
+}: TodoItemProps) {
   const [editing, setEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(todo.title);
   const [editDueDate, setEditDueDate] = useState(todo.due_date?.split("T")[0] || "");
@@ -24,6 +43,8 @@ export default function TodoItem({ todo, onToggle, onDelete, onUpdate, onAddSubT
   const [editPriority, setEditPriority] = useState(todo.priority || "");
   const [editRecurrence, setEditRecurrence] = useState(todo.recurrence_rule || "");
   const [showOptions, setShowOptions] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+  const [commentCount, setCommentCount] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const optionsRef = useRef<HTMLDivElement>(null);
   const editContainerRef = useRef<HTMLDivElement>(null);
@@ -97,6 +118,16 @@ export default function TodoItem({ todo, onToggle, onDelete, onUpdate, onAddSubT
     saveEdit();
   };
 
+  const handleLabelSelectionChange = async (selectedIds: string[]) => {
+    onTodoLabelIdsChange(todo.id, selectedIds);
+    try {
+      await setTodoLabels(todo.id, selectedIds);
+    } catch (e) {
+      console.error("Failed to update labels", e);
+    }
+  };
+
+  const selectedLabels = labels.filter((l) => todoLabelIds.includes(l.id));
   const priorityColor = getPriorityColor(todo.priority);
 
   return (
@@ -204,6 +235,14 @@ export default function TodoItem({ todo, onToggle, onDelete, onUpdate, onAddSubT
                 ))}
               </select>
             </div>
+            <div className="flex items-center gap-sm mt-xs">
+              <LabelPicker
+                labels={labels}
+                selectedLabelIds={todoLabelIds}
+                onSelectionChange={handleLabelSelectionChange}
+                onLabelsChange={onLabelsChange}
+              />
+            </div>
           </div>
         ) : (
           <div className="flex-1 min-w-0">
@@ -240,12 +279,24 @@ export default function TodoItem({ todo, onToggle, onDelete, onUpdate, onAddSubT
                   {formatRecurrence(todo.recurrence_rule)}
                 </span>
               )}
+              {selectedLabels.map((l) => (
+                <LabelBadge key={l.id} label={l} />
+              ))}
             </div>
           </div>
         )}
 
         {!editing && (
           <div className="relative flex items-center gap-xs">
+            <button
+              onClick={() => setExpanded(!expanded)}
+              className="opacity-0 group-hover:opacity-100 transition-all text-on-surface-variant hover:text-on-surface p-sm rounded-lg hover:bg-surface-variant"
+              aria-label="Toggle comments"
+            >
+              <span className="material-symbols-outlined text-[16px]">
+                {expanded ? "expand_less" : "expand_more"}
+              </span>
+            </button>
             {depth === 0 && (
               <button
                 onClick={() => onAddSubTodo(todo.id)}
@@ -301,6 +352,24 @@ export default function TodoItem({ todo, onToggle, onDelete, onUpdate, onAddSubT
           </div>
         )}
       </div>
+
+      <AnimatePresence>
+        {expanded && !editing && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden pl-[68px]"
+          >
+            <CommentSection
+              todoId={todo.id}
+              commentCount={commentCount}
+              onCommentCountChange={setCommentCount}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }
