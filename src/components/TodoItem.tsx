@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { motion, AnimatePresence } from "motion/react";
 import { CATEGORIES, DURATIONS, formatDuration, formatDate, getDueDateColor } from "@/lib/constants";
 
 interface Todo {
@@ -45,7 +46,6 @@ export default function TodoItem({ todo, onToggle, onDelete, onUpdate }: TodoIte
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.5 : 1,
     zIndex: isDragging ? 10 : 0,
   };
 
@@ -104,9 +104,14 @@ export default function TodoItem({ todo, onToggle, onDelete, onUpdate }: TodoIte
   const categoryObj = todo.category ? CATEGORIES.find((c) => c.name === todo.category) : null;
 
   return (
-    <div
+    <motion.div
       ref={setNodeRef}
       style={style}
+      layout
+      initial={{ opacity: 0, y: -10, scale: 0.98 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, x: -20, scale: 0.95 }}
+      transition={{ type: "spring", stiffness: 500, damping: 30 }}
       className="py-lg px-lg hover:bg-[#F7F5F0]/50 transition-colors group rounded-xl"
     >
       <div className="flex items-center gap-md">
@@ -118,20 +123,30 @@ export default function TodoItem({ todo, onToggle, onDelete, onUpdate }: TodoIte
           <span className="material-symbols-outlined text-[18px]">drag_indicator</span>
         </div>
 
-        <button
+        <motion.button
           onClick={() => onToggle(todo.id, !todo.completed)}
+          whileTap={{ scale: 0.85 }}
           className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all shrink-0 ${
             todo.completed
               ? "bg-primary border-primary"
               : "border-outline-variant hover:border-primary"
           }`}
         >
-          {todo.completed && (
-            <span className="material-symbols-outlined text-[14px] text-on-primary">
-              check
-            </span>
-          )}
-        </button>
+          <AnimatePresence mode="wait">
+            {todo.completed && (
+              <motion.span
+                key="check"
+                initial={{ scale: 0, rotate: -90 }}
+                animate={{ scale: 1, rotate: 0 }}
+                exit={{ scale: 0, rotate: 90 }}
+                transition={{ type: "spring", stiffness: 500, damping: 25 }}
+                className="material-symbols-outlined text-[14px] text-on-primary"
+              >
+                check
+              </motion.span>
+            )}
+          </AnimatePresence>
+        </motion.button>
 
         {editing ? (
           <div ref={editContainerRef} className="flex-1 flex flex-col gap-sm">
@@ -230,33 +245,41 @@ export default function TodoItem({ todo, onToggle, onDelete, onUpdate }: TodoIte
               <span className="material-symbols-outlined text-[18px]">more_horiz</span>
             </button>
 
-            {showOptions && (
-              <div className="absolute right-0 top-full mt-1 bg-surface-container-lowest rounded-xl shadow-soft p-sm z-10 min-w-[120px]">
-                <button
-                  onClick={() => {
-                    setEditing(true);
-                    setShowOptions(false);
-                  }}
-                  className="w-full flex items-center gap-sm px-md py-sm rounded-lg hover:bg-[#F7F5F0] text-on-surface-variant text-[13px] font-medium transition-colors"
+            <AnimatePresence>
+              {showOptions && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95, y: -5 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95, y: -5 }}
+                  transition={{ duration: 0.15 }}
+                  className="absolute right-0 top-full mt-1 bg-surface-container-lowest rounded-xl shadow-soft p-sm z-10 min-w-[120px]"
                 >
-                  <span className="material-symbols-outlined text-[16px]">edit</span>
-                  Edit
-                </button>
-                <button
-                  onClick={() => {
-                    onDelete(todo.id);
-                    setShowOptions(false);
-                  }}
-                  className="w-full flex items-center gap-sm px-md py-sm rounded-lg hover:bg-error-container/20 text-error text-[13px] font-medium transition-colors"
-                >
-                  <span className="material-symbols-outlined text-[16px]">delete</span>
-                  Delete
-                </button>
-              </div>
-            )}
+                  <button
+                    onClick={() => {
+                      setEditing(true);
+                      setShowOptions(false);
+                    }}
+                    className="w-full flex items-center gap-sm px-md py-sm rounded-lg hover:bg-[#F7F5F0] text-on-surface-variant text-[13px] font-medium transition-colors"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">edit</span>
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => {
+                      onDelete(todo.id);
+                      setShowOptions(false);
+                    }}
+                    className="w-full flex items-center gap-sm px-md py-sm rounded-lg hover:bg-error-container/20 text-error text-[13px] font-medium transition-colors"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">delete</span>
+                    Delete
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 }

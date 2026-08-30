@@ -16,6 +16,7 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
+import { motion, AnimatePresence } from "motion/react";
 import { addTodo, toggleTodo, deleteTodo, updateTodo, clearCompleted } from "@/lib/todos";
 import { CATEGORIES, DURATIONS, formatDuration } from "@/lib/constants";
 import TodoItem from "./TodoItem";
@@ -169,12 +170,20 @@ export default function TodoList({ initialTodos, userId }: TodoListProps) {
 
   return (
     <div className="bg-surface-container-lowest rounded-3xl shadow-soft p-xl">
-      {toast && (
-        <div className="mb-lg flex items-center gap-sm bg-primary/10 text-primary rounded-xl p-md font-label-md transition-all">
-          <span className="material-symbols-outlined text-[16px]">check_circle</span>
-          {toast}
-        </div>
-      )}
+      <AnimatePresence>
+        {toast && (
+          <motion.div
+            initial={{ opacity: 0, y: -10, height: 0, marginBottom: 0 }}
+            animate={{ opacity: 1, y: 0, height: "auto", marginBottom: 16 }}
+            exit={{ opacity: 0, y: -10, height: 0, marginBottom: 0 }}
+            transition={{ type: "spring", stiffness: 500, damping: 30 }}
+            className="flex items-center gap-sm bg-primary/10 text-primary rounded-xl p-md font-label-md overflow-hidden"
+          >
+            <span className="material-symbols-outlined text-[16px]">check_circle</span>
+            {toast}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <form onSubmit={handleSubmit} className="mb-lg">
         <div className="flex gap-md">
@@ -194,14 +203,15 @@ export default function TodoList({ initialTodos, userId }: TodoListProps) {
               add_task
             </span>
           </div>
-          <button
+          <motion.button
             type="submit"
             disabled={loading}
+            whileTap={{ scale: 0.95 }}
             className="h-12 px-6 bg-primary hover:bg-primary-container active:scale-[0.98] transition-all rounded-xl font-button text-on-primary shadow-sm disabled:opacity-50 flex items-center gap-sm"
           >
             <span className="material-symbols-outlined text-[18px]">add</span>
             {loading ? "Adding..." : "Add"}
-          </button>
+          </motion.button>
         </div>
 
         <div className="flex items-center gap-sm mt-sm">
@@ -234,120 +244,159 @@ export default function TodoList({ initialTodos, userId }: TodoListProps) {
           )}
         </div>
 
-        {showFormOptions && (
-          <div className="flex gap-sm mt-sm flex-wrap items-center">
-            <input
-              type="date"
-              value={formDueDate}
-              onChange={(e) => setFormDueDate(e.target.value)}
-              className="h-8 px-2 rounded-lg bg-[#F7F5F0] border-none shadow-inner-soft font-label-sm text-on-surface-variant focus:ring-2 focus:ring-primary focus:outline-none text-[12px]"
-            />
-            <select
-              value={formDuration}
-              onChange={(e) => setFormDuration(e.target.value)}
-              className="h-8 px-2 rounded-lg bg-[#F7F5F0] border-none shadow-inner-soft font-label-sm text-on-surface-variant focus:ring-2 focus:ring-primary focus:outline-none text-[12px]"
+        <AnimatePresence>
+          {showFormOptions && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.2 }}
+              className="overflow-hidden"
             >
-              <option value="">Duration</option>
-              {DURATIONS.map((d) => (
-                <option key={d} value={d}>{formatDuration(d)}</option>
-              ))}
-            </select>
-            <div className="flex gap-xs">
-              {CATEGORIES.map((cat) => (
-                <button
-                  key={cat.name}
-                  type="button"
-                  onClick={() => setFormCategory(formCategory === cat.name ? "" : cat.name)}
-                  className={`h-8 px-3 rounded-full text-[11px] font-medium transition-all ${
-                    formCategory === cat.name
-                      ? "text-on-primary"
-                      : "text-on-surface-variant hover:opacity-80"
-                  }`}
-                  style={{
-                    backgroundColor: formCategory === cat.name ? cat.color : `${cat.color}20`,
-                  }}
+              <div className="flex gap-sm mt-sm flex-wrap items-center">
+                <input
+                  type="date"
+                  value={formDueDate}
+                  onChange={(e) => setFormDueDate(e.target.value)}
+                  className="h-8 px-2 rounded-lg bg-[#F7F5F0] border-none shadow-inner-soft font-label-sm text-on-surface-variant focus:ring-2 focus:ring-primary focus:outline-none text-[12px]"
+                />
+                <select
+                  value={formDuration}
+                  onChange={(e) => setFormDuration(e.target.value)}
+                  className="h-8 px-2 rounded-lg bg-[#F7F5F0] border-none shadow-inner-soft font-label-sm text-on-surface-variant focus:ring-2 focus:ring-primary focus:outline-none text-[12px]"
                 >
-                  {cat.name}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
+                  <option value="">Duration</option>
+                  {DURATIONS.map((d) => (
+                    <option key={d} value={d}>{formatDuration(d)}</option>
+                  ))}
+                </select>
+                <div className="flex gap-xs">
+                  {CATEGORIES.map((cat) => (
+                    <button
+                      key={cat.name}
+                      type="button"
+                      onClick={() => setFormCategory(formCategory === cat.name ? "" : cat.name)}
+                      className={`h-8 px-3 rounded-full text-[11px] font-medium transition-all ${
+                        formCategory === cat.name
+                          ? "text-on-primary"
+                          : "text-on-surface-variant hover:opacity-80"
+                      }`}
+                      style={{
+                        backgroundColor: formCategory === cat.name ? cat.color : `${cat.color}20`,
+                      }}
+                    >
+                      {cat.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </form>
 
-      {error && (
-        <div className="flex items-center gap-sm bg-error-container/30 rounded-xl p-md mb-lg">
-          <span className="material-symbols-outlined text-[18px] text-error">
-            error
-          </span>
-          <p className="font-label-md text-error">{error}</p>
-        </div>
-      )}
+      <AnimatePresence>
+        {error && (
+          <motion.div
+            initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+            animate={{ opacity: 1, height: "auto", marginBottom: 16 }}
+            exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+            transition={{ duration: 0.2 }}
+            className="flex items-center gap-sm bg-error-container/30 rounded-xl p-md overflow-hidden"
+          >
+            <span className="material-symbols-outlined text-[18px] text-error">
+              error
+            </span>
+            <p className="font-label-md text-error">{error}</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {todos.length > 0 && (
         <div className="flex items-center justify-between mb-md">
-          <div className="flex gap-xs">
+          <div className="flex gap-xs relative">
             {(["all", "active", "completed"] as FilterTab[]).map((tab) => (
               <button
                 key={tab}
                 onClick={() => setFilter(tab)}
-                className={`px-3 py-1.5 rounded-full text-[12px] font-medium transition-all ${
+                className={`relative px-3 py-1.5 rounded-full text-[12px] font-medium transition-colors ${
                   filter === tab
-                    ? "bg-primary text-on-primary"
+                    ? "text-on-primary"
                     : "text-on-surface-variant hover:bg-[#F7F5F0]"
                 }`}
               >
-                {tab.charAt(0).toUpperCase() + tab.slice(1)}
-                {tab === "active" && ` (${activeCount})`}
-                {tab === "completed" && ` (${completedCount})`}
+                {filter === tab && (
+                  <motion.div
+                    layoutId="activeFilter"
+                    className="absolute inset-0 bg-primary rounded-full"
+                    transition={{ type: "spring", stiffness: 500, damping: 35 }}
+                  />
+                )}
+                <span className="relative z-10">
+                  {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                  {tab === "active" && ` (${activeCount})`}
+                  {tab === "completed" && ` (${completedCount})`}
+                </span>
               </button>
             ))}
           </div>
 
           {completedCount > 0 && (
-            <button
+            <motion.button
               onClick={handleClearCompleted}
+              whileTap={{ scale: 0.95 }}
               className="flex items-center gap-xs px-3 py-1.5 rounded-full text-[12px] font-medium text-error hover:bg-error-container/20 transition-colors"
             >
               <span className="material-symbols-outlined text-[14px]">delete_sweep</span>
               Clear done
-            </button>
+            </motion.button>
           )}
         </div>
       )}
 
       {todos.length === 0 ? (
-        <div className="text-center py-2xl">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="text-center py-2xl"
+        >
           <span className="material-symbols-outlined text-[56px] text-outline-variant/40 mb-lg block">
             checklist
           </span>
           <p className="font-body-lg text-on-surface-variant/60">
             No todos yet. Add one above.
           </p>
-        </div>
+        </motion.div>
       ) : filteredTodos.length === 0 ? (
-        <div className="text-center py-xl">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="text-center py-xl"
+        >
           <p className="font-body-md text-on-surface-variant/60">
             {filter === "active" ? "All done!" : "No completed todos yet."}
           </p>
-        </div>
+        </motion.div>
       ) : (
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
           <SortableContext items={filteredTodos.map((t) => t.id)} strategy={verticalListSortingStrategy}>
             <div className="flex flex-col">
-              {filteredTodos.map((todo, index) => (
-                <div key={todo.id}>
-                  <TodoItem
-                    todo={todo}
-                    onToggle={handleToggle}
-                    onDelete={handleDelete}
-                    onUpdate={handleUpdate}
-                  />
-                  {index < filteredTodos.length - 1 && (
-                    <div className="h-px bg-[#F7F5F0] mx-lg" />
-                  )}
-                </div>
-              ))}
+              <AnimatePresence mode="popLayout">
+                {filteredTodos.map((todo, index) => (
+                  <div key={todo.id}>
+                    <TodoItem
+                      todo={todo}
+                      onToggle={handleToggle}
+                      onDelete={handleDelete}
+                      onUpdate={handleUpdate}
+                    />
+                    {index < filteredTodos.length - 1 && (
+                      <div className="h-px bg-[#F7F5F0] mx-lg" />
+                    )}
+                  </div>
+                ))}
+              </AnimatePresence>
             </div>
           </SortableContext>
         </DndContext>
