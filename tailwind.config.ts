@@ -9,6 +9,7 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        "background": "#F7F5F0",
         "outline": "#717976",
         "inverse-on-surface": "#e7f2fe",
         "on-primary-fixed-variant": "#2d4c46",
