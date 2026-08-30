@@ -268,34 +268,36 @@ export default function TodoList({ initialTodos, userId }: TodoListProps) {
               transition={{ duration: 0.2 }}
               className="overflow-hidden"
             >
-              <div className="flex gap-sm mt-sm flex-wrap items-center">
-                <input
-                  type="date"
-                  value={formDueDate}
-                  onChange={(e) => setFormDueDate(e.target.value)}
-                  className="h-8 px-2 rounded-lg tactile-input font-label-sm text-[12px]"
-                />
-                <select
-                  value={formDuration}
-                  onChange={(e) => setFormDuration(e.target.value)}
-                  className="h-8 px-2 rounded-lg tactile-input font-label-sm text-[12px]"
-                >
-                  <option value="">Duration</option>
-                  {DURATIONS.map((d) => (
-                    <option key={d} value={d}>{formatDuration(d)}</option>
-                  ))}
-                </select>
-                <select
-                  value={formPriority}
-                  onChange={(e) => setFormPriority(e.target.value)}
-                  className="h-8 px-2 rounded-lg tactile-input font-label-sm text-[12px]"
-                >
-                  <option value="">Priority</option>
-                  {PRIORITIES.map((p) => (
-                    <option key={p.name} value={p.name}>{p.label}</option>
-                  ))}
-                </select>
-                <div className="flex gap-xs">
+              <div className="mt-md space-y-sm">
+                <div className="flex gap-sm flex-wrap items-center">
+                  <input
+                    type="date"
+                    value={formDueDate}
+                    onChange={(e) => setFormDueDate(e.target.value)}
+                    className="h-8 px-2 rounded-lg tactile-input font-label-sm text-[12px] w-auto"
+                  />
+                  <select
+                    value={formDuration}
+                    onChange={(e) => setFormDuration(e.target.value)}
+                    className="h-8 px-2 rounded-lg tactile-input font-label-sm text-[12px] w-auto min-w-[100px]"
+                  >
+                    <option value="">Duration</option>
+                    {DURATIONS.map((d) => (
+                      <option key={d} value={d}>{formatDuration(d)}</option>
+                    ))}
+                  </select>
+                  <select
+                    value={formPriority}
+                    onChange={(e) => setFormPriority(e.target.value)}
+                    className="h-8 px-2 rounded-lg tactile-input font-label-sm text-[12px] w-auto min-w-[100px]"
+                  >
+                    <option value="">Priority</option>
+                    {PRIORITIES.map((p) => (
+                      <option key={p.name} value={p.name}>{p.label}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex gap-xs flex-wrap">
                   {CATEGORIES.map((cat) => (
                     <button
                       key={cat.name}
