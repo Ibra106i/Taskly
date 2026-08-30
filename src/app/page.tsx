@@ -53,8 +53,8 @@ export default async function Home() {
     todoLabelsMap[tl.todo_id].push(tl.label_id);
   });
 
-  const completedCount = todos.filter((t) => t.completed && !t.parent_id).length;
-  const totalCount = todos.filter((t) => !t.parent_id).length;
+  const completedCount = todos.filter((t) => t.completed).length;
+  const totalCount = todos.length;
 
   return (
     <div className="min-h-screen bg-background">

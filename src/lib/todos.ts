@@ -57,7 +57,10 @@ export async function addTodo(
     .select()
     .single();
 
-  if (error) throw error;
+  if (error) {
+    console.error("addTodo error:", JSON.stringify({ message: error.message, details: error.details, hint: error.hint, code: error.code }));
+    throw error;
+  }
   return data;
 }
 

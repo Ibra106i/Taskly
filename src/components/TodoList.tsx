@@ -141,7 +141,7 @@ export default function TodoList({
     return result;
   }, [rootTodos, view, selectedProjectId, selectedLabelId, todayStart, todayEnd, weekEnd, todoLabelsMap]);
 
-  const completedCount = rootTodos.filter((t) => t.completed).length;
+  const completedCount = todos.filter((t) => t.completed).length;
 
   const todoCounts = useMemo(() => {
     const counts: Record<string, number> = { inbox: 0 };
@@ -195,7 +195,8 @@ export default function TodoList({
       setFormRecurrence("");
       setShowFormOptions(false);
       setToast("Todo added");
-    } catch {
+    } catch (e: any) {
+      console.error("addTodo failed:", e?.message || e);
       setError("Failed to add todo.");
     } finally {
       setLoading(false);
