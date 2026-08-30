@@ -1,10 +1,3 @@
-export const CATEGORIES = [
-  { name: "Work", color: "#45645e" },
-  { name: "Personal", color: "#8c4e35" },
-  { name: "School", color: "#7b554d" },
-  { name: "Health", color: "#84a59d" },
-];
-
 export const PRIORITIES = [
   { name: "high", label: "High", color: "#ba1a1a" },
   { name: "medium", label: "Medium", color: "#c1a87d" },
@@ -14,6 +7,23 @@ export const PRIORITIES = [
 export type Priority = (typeof PRIORITIES)[number]["name"];
 
 export const DURATIONS = [5, 10, 15, 30, 45, 60, 90, 120];
+
+export const RECURRENCE_OPTIONS = [
+  { value: "daily", label: "Every day" },
+  { value: "weekly:monday", label: "Every Monday" },
+  { value: "weekly:tuesday", label: "Every Tuesday" },
+  { value: "weekly:wednesday", label: "Every Wednesday" },
+  { value: "weekly:thursday", label: "Every Thursday" },
+  { value: "weekly:friday", label: "Every Friday" },
+  { value: "weekly:saturday", label: "Every Saturday" },
+  { value: "weekly:sunday", label: "Every Sunday" },
+  { value: "monthly:1", label: "Monthly (1st)" },
+  { value: "monthly:15", label: "Monthly (15th)" },
+  { value: "every:3:days", label: "Every 3 days" },
+  { value: "every:7:days", label: "Every 7 days" },
+  { value: "every:14:days", label: "Every 14 days" },
+  { value: "every:30:days", label: "Every 30 days" },
+];
 
 export function formatDuration(minutes: number): string {
   if (minutes < 60) return `${minutes}m`;
@@ -51,4 +61,36 @@ export function getPriorityColor(priority: string | null): string {
   if (!priority) return "";
   const p = PRIORITIES.find((pr) => pr.name === priority);
   return p ? p.color : "";
+}
+
+export function formatRecurrence(rule: string | null): string {
+  if (!rule) return "";
+  const option = RECURRENCE_OPTIONS.find((o) => o.value === rule);
+  return option ? option.label : rule;
+}
+
+export function getNextOccurrence(rule: string, from: Date): Date {
+  const next = new Date(from);
+
+  if (rule === "daily") {
+    next.setDate(next.getDate() + 1);
+  } else if (rule.startsWith("weekly:")) {
+    const dayName = rule.split(":")[1];
+    const days = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+    const targetDay = days.indexOf(dayName);
+    const currentDay = next.getDay();
+    let daysToAdd = targetDay - currentDay;
+    if (daysToAdd <= 0) daysToAdd += 7;
+    next.setDate(next.getDate() + daysToAdd);
+  } else if (rule.startsWith("monthly:")) {
+    const day = parseInt(rule.split(":")[1]);
+    next.setMonth(next.getMonth() + 1);
+    next.setDate(day);
+  } else if (rule.startsWith("every:")) {
+    const parts = rule.split(":");
+    const num = parseInt(parts[1]);
+    next.setDate(next.getDate() + num);
+  }
+
+  return next;
 }

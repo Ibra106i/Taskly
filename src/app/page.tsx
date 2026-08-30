@@ -14,19 +14,30 @@ export default async function Home() {
   }
 
   const supabase = createSupabaseClient();
-  const { data: todos } = await supabase
-    .from("todos")
-    .select("*")
-    .eq("user_id", userId)
-    .order("created_at", { ascending: false });
 
-  const completedCount = todos?.filter((t) => t.completed).length || 0;
-  const totalCount = todos?.length || 0;
+  const [todosResult, projectsResult] = await Promise.all([
+    supabase
+      .from("todos")
+      .select("*")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("projects")
+      .select("*")
+      .eq("user_id", userId)
+      .order("name"),
+  ]);
+
+  const todos = todosResult.data || [];
+  const projects = projectsResult.data || [];
+
+  const completedCount = todos.filter((t) => t.completed && !t.parent_id).length;
+  const totalCount = todos.filter((t) => !t.parent_id).length;
 
   return (
     <div className="min-h-screen bg-background">
       <header className="bg-surface shadow-soft sticky top-0 z-10">
-        <div className="max-w-2xl mx-auto px-6 py-4 flex items-center justify-between">
+        <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link href="/" className="font-headline-md text-primary font-bold tracking-tight">
             Taskly
           </Link>
@@ -40,7 +51,7 @@ export default async function Home() {
         </div>
       </header>
 
-      <main className="max-w-2xl mx-auto px-6 py-8">
+      <main className="max-w-5xl mx-auto px-6 py-8">
         {totalCount > 0 && (
           <div className="flex items-center justify-between mb-lg">
             <p className="font-label-md text-on-surface-variant">
@@ -57,7 +68,7 @@ export default async function Home() {
           </div>
         )}
 
-        <TodoList initialTodos={todos || []} userId={userId} />
+        <TodoList initialTodos={todos} initialProjects={projects} userId={userId} />
       </main>
     </div>
   );

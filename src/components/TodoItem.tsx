@@ -4,33 +4,25 @@ import { useState, useRef, useEffect } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { motion, AnimatePresence } from "motion/react";
-import { CATEGORIES, DURATIONS, PRIORITIES, formatDuration, formatDate, getDueDateColor, getPriorityColor } from "@/lib/constants";
-
-interface Todo {
-  id: string;
-  title: string;
-  completed: boolean;
-  created_at: string;
-  due_date: string | null;
-  duration_minutes: number | null;
-  category: string | null;
-  priority: string | null;
-}
+import { Todo } from "@/lib/types";
+import { DURATIONS, PRIORITIES, RECURRENCE_OPTIONS, formatDuration, formatDate, getDueDateColor, getPriorityColor, formatRecurrence } from "@/lib/constants";
 
 interface TodoItemProps {
   todo: Todo;
   onToggle: (id: string, completed: boolean) => void;
   onDelete: (id: string) => void;
-  onUpdate: (id: string, updates: { title?: string; due_date?: string | null; duration_minutes?: number | null; category?: string | null; priority?: string | null }) => void;
+  onUpdate: (id: string, updates: Partial<Todo>) => void;
+  onAddSubTodo: (parentId: string) => void;
+  depth?: number;
 }
 
-export default function TodoItem({ todo, onToggle, onDelete, onUpdate }: TodoItemProps) {
+export default function TodoItem({ todo, onToggle, onDelete, onUpdate, onAddSubTodo, depth = 0 }: TodoItemProps) {
   const [editing, setEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(todo.title);
   const [editDueDate, setEditDueDate] = useState(todo.due_date?.split("T")[0] || "");
   const [editDuration, setEditDuration] = useState(todo.duration_minutes?.toString() || "");
-  const [editCategory, setEditCategory] = useState(todo.category || "");
   const [editPriority, setEditPriority] = useState(todo.priority || "");
+  const [editRecurrence, setEditRecurrence] = useState(todo.recurrence_rule || "");
   const [showOptions, setShowOptions] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const optionsRef = useRef<HTMLDivElement>(null);
@@ -80,8 +72,8 @@ export default function TodoItem({ todo, onToggle, onDelete, onUpdate }: TodoIte
       title,
       due_date: editDueDate ? new Date(editDueDate).toISOString() : null,
       duration_minutes: editDuration ? parseInt(editDuration) : null,
-      category: editCategory || null,
       priority: editPriority || null,
+      recurrence_rule: editRecurrence || null,
     });
     setEditing(false);
   };
@@ -90,8 +82,8 @@ export default function TodoItem({ todo, onToggle, onDelete, onUpdate }: TodoIte
     setEditTitle(todo.title);
     setEditDueDate(todo.due_date?.split("T")[0] || "");
     setEditDuration(todo.duration_minutes?.toString() || "");
-    setEditCategory(todo.category || "");
     setEditPriority(todo.priority || "");
+    setEditRecurrence(todo.recurrence_rule || "");
     setEditing(false);
   };
 
@@ -105,7 +97,6 @@ export default function TodoItem({ todo, onToggle, onDelete, onUpdate }: TodoIte
     saveEdit();
   };
 
-  const categoryObj = todo.category ? CATEGORIES.find((c) => c.name === todo.category) : null;
   const priorityColor = getPriorityColor(todo.priority);
 
   return (
@@ -117,7 +108,7 @@ export default function TodoItem({ todo, onToggle, onDelete, onUpdate }: TodoIte
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, x: -20, scale: 0.95 }}
       transition={{ type: "spring", stiffness: 500, damping: 30 }}
-      className="py-lg px-lg hover:bg-surface-variant/50 transition-colors group rounded-xl"
+      className="py-md px-lg hover:bg-surface-variant/50 transition-colors group rounded-xl"
     >
       <div className="flex items-center gap-md">
         <div
@@ -201,40 +192,38 @@ export default function TodoItem({ todo, onToggle, onDelete, onUpdate }: TodoIte
                   <option key={p.name} value={p.name}>{p.label}</option>
                 ))}
               </select>
-            </div>
-            <div className="flex gap-xs flex-wrap">
-              {CATEGORIES.map((cat) => (
-                  <button
-                    key={cat.name}
-                    type="button"
-                    onMouseDown={(e) => e.preventDefault()}
-                    onClick={() => setEditCategory(editCategory === cat.name ? "" : cat.name)}
-                    className={`h-7 px-2 rounded-full text-[11px] font-medium transition-all ${
-                      editCategory === cat.name
-                        ? "text-on-primary"
-                        : "text-on-surface-variant hover:opacity-80"
-                    }`}
-                    style={{
-                      backgroundColor: editCategory === cat.name ? cat.color : `${cat.color}20`,
-                    }}
-                  >
-                    {cat.name}
-                  </button>
+              <select
+                value={editRecurrence}
+                onChange={(e) => setEditRecurrence(e.target.value)}
+                onMouseDown={(e) => e.stopPropagation()}
+                className="h-7 tactile-input-inline text-[12px] min-w-[120px]"
+              >
+                <option value="">No repeat</option>
+                {RECURRENCE_OPTIONS.map((r) => (
+                  <option key={r.value} value={r.value}>{r.label}</option>
                 ))}
+              </select>
             </div>
           </div>
         ) : (
           <div className="flex-1 min-w-0">
-            <span
-              onDoubleClick={() => setEditing(true)}
-              className={`font-body-md transition-all cursor-pointer block ${
-                todo.completed
-                  ? "text-on-surface-variant line-through decoration-outline-variant/50"
-                  : "text-on-surface"
-              }`}
-            >
-              {todo.title}
-            </span>
+            <div className="flex items-center gap-sm">
+              <span
+                onDoubleClick={() => setEditing(true)}
+                className={`font-body-md transition-all cursor-pointer block ${
+                  todo.completed
+                    ? "text-on-surface-variant line-through decoration-outline-variant/50"
+                    : "text-on-surface"
+                }`}
+              >
+                {todo.title}
+              </span>
+              {todo.recurrence_rule && (
+                <span className="material-symbols-outlined text-[14px] text-on-surface-variant/50">
+                  repeat
+                </span>
+              )}
+            </div>
             <div className="flex items-center gap-sm mt-xs flex-wrap">
               {todo.due_date && (
                 <span className={`font-label-sm ${getDueDateColor(todo.due_date)}`}>
@@ -246,12 +235,9 @@ export default function TodoItem({ todo, onToggle, onDelete, onUpdate }: TodoIte
                   {formatDuration(todo.duration_minutes)}
                 </span>
               )}
-              {categoryObj && (
-                <span
-                  className="font-label-sm px-xs py-[1px] rounded-full text-on-primary"
-                  style={{ backgroundColor: categoryObj.color }}
-                >
-                  {categoryObj.name}
+              {todo.recurrence_rule && (
+                <span className="font-label-sm text-on-surface-variant/60">
+                  {formatRecurrence(todo.recurrence_rule)}
                 </span>
               )}
             </div>
@@ -259,48 +245,59 @@ export default function TodoItem({ todo, onToggle, onDelete, onUpdate }: TodoIte
         )}
 
         {!editing && (
-          <div className="relative" ref={optionsRef}>
-            <button
-              onClick={() => setShowOptions(!showOptions)}
-              className="opacity-0 group-hover:opacity-100 transition-all text-on-surface-variant hover:text-on-surface p-sm rounded-lg hover:bg-surface-variant"
-              aria-label="More options"
-            >
-              <span className="material-symbols-outlined text-[18px]">more_horiz</span>
-            </button>
+          <div className="relative flex items-center gap-xs">
+            {depth === 0 && (
+              <button
+                onClick={() => onAddSubTodo(todo.id)}
+                className="opacity-0 group-hover:opacity-100 transition-all text-on-surface-variant hover:text-on-surface p-sm rounded-lg hover:bg-surface-variant"
+                aria-label="Add sub-task"
+              >
+                <span className="material-symbols-outlined text-[16px]">add</span>
+              </button>
+            )}
+            <div ref={optionsRef}>
+              <button
+                onClick={() => setShowOptions(!showOptions)}
+                className="opacity-0 group-hover:opacity-100 transition-all text-on-surface-variant hover:text-on-surface p-sm rounded-lg hover:bg-surface-variant"
+                aria-label="More options"
+              >
+                <span className="material-symbols-outlined text-[18px]">more_horiz</span>
+              </button>
 
-            <AnimatePresence>
-              {showOptions && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.95, y: -5 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.95, y: -5 }}
-                  transition={{ duration: 0.15 }}
-                  className="absolute right-0 top-full mt-1 bg-surface rounded-xl p-sm z-10 min-w-[120px]"
-                  style={{ boxShadow: "0px 12px 32px rgba(113, 121, 118, 0.08)" }}
-                >
-                  <button
-                    onClick={() => {
-                      setEditing(true);
-                      setShowOptions(false);
-                    }}
-                    className="w-full flex items-center gap-sm px-md py-sm rounded-lg hover:bg-surface-variant text-on-surface-variant text-[13px] font-medium transition-colors"
+              <AnimatePresence>
+                {showOptions && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95, y: -5 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95, y: -5 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute right-0 top-full mt-1 bg-surface rounded-xl p-sm z-10 min-w-[120px]"
+                    style={{ boxShadow: "0px 12px 32px rgba(113, 121, 118, 0.08)" }}
                   >
-                    <span className="material-symbols-outlined text-[16px]">edit</span>
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => {
-                      onDelete(todo.id);
-                      setShowOptions(false);
-                    }}
-                    className="w-full flex items-center gap-sm px-md py-sm rounded-lg hover:bg-error-container/20 text-error text-[13px] font-medium transition-colors"
-                  >
-                    <span className="material-symbols-outlined text-[16px]">delete</span>
-                    Delete
-                  </button>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                    <button
+                      onClick={() => {
+                        setEditing(true);
+                        setShowOptions(false);
+                      }}
+                      className="w-full flex items-center gap-sm px-md py-sm rounded-lg hover:bg-surface-variant text-on-surface-variant text-[13px] font-medium transition-colors"
+                    >
+                      <span className="material-symbols-outlined text-[16px]">edit</span>
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => {
+                        onDelete(todo.id);
+                        setShowOptions(false);
+                      }}
+                      className="w-full flex items-center gap-sm px-md py-sm rounded-lg hover:bg-error-container/20 text-error text-[13px] font-medium transition-colors"
+                    >
+                      <span className="material-symbols-outlined text-[16px]">delete</span>
+                      Delete
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           </div>
         )}
       </div>

@@ -2,26 +2,17 @@
 
 import { auth } from "@clerk/nextjs/server";
 import { createSupabaseClient } from "@/lib/supabase/server";
-
-export interface Todo {
-  id: string;
-  title: string;
-  completed: boolean;
-  created_at: string;
-  due_date: string | null;
-  duration_minutes: number | null;
-  category: string | null;
-  priority: string | null;
-  user_id: string;
-}
+import { Todo } from "@/lib/types";
 
 export async function addTodo(
   title: string,
   options?: {
     due_date?: string | null;
     duration_minutes?: number | null;
-    category?: string | null;
     priority?: string | null;
+    parent_id?: string | null;
+    project_id?: string | null;
+    recurrence_rule?: string | null;
   }
 ) {
   const { userId } = await auth();
@@ -35,8 +26,10 @@ export async function addTodo(
       user_id: userId,
       due_date: options?.due_date ?? null,
       duration_minutes: options?.duration_minutes ?? null,
-      category: options?.category ?? null,
       priority: options?.priority ?? null,
+      parent_id: options?.parent_id ?? null,
+      project_id: options?.project_id ?? null,
+      recurrence_rule: options?.recurrence_rule ?? null,
     })
     .select()
     .single();
@@ -65,8 +58,10 @@ export async function updateTodo(
     title?: string;
     due_date?: string | null;
     duration_minutes?: number | null;
-    category?: string | null;
     priority?: string | null;
+    parent_id?: string | null;
+    project_id?: string | null;
+    recurrence_rule?: string | null;
   }
 ) {
   const { userId } = await auth();
