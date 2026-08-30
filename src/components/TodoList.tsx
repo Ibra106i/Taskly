@@ -211,11 +211,8 @@ export default function TodoList({ initialTodos, userId }: TodoListProps) {
                 setError("");
               }}
               placeholder="What needs to be done?"
-              className="w-full h-12 pl-12 pr-4 rounded-xl tactile-input font-body-md"
+              className="w-full h-12 px-4 rounded-xl tactile-input font-body-md"
             />
-            <span className="material-symbols-outlined absolute left-6 top-1/2 -translate-y-1/2 text-on-surface-variant text-[20px]">
-              add_task
-            </span>
           </div>
           <motion.button
             type="submit"
