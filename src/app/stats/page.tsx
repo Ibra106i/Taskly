@@ -2,6 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { createSupabaseClient } from "@/lib/supabase/server";
 import Link from "next/link";
+import StatsActions from "@/components/StatsActions";
 
 export default async function StatsPage() {
   const { userId } = await auth();
@@ -100,6 +101,11 @@ export default async function StatsPage() {
             </div>
           </div>
         )}
+
+        <div className="bg-surface rounded-3xl p-xl mb-xl" style={{ boxShadow: "0px 12px 32px rgba(113, 121, 118, 0.08)" }}>
+          <h3 className="font-headline-md text-on-surface font-bold mb-lg">Actions</h3>
+          <StatsActions />
+        </div>
 
         <div className="bg-surface rounded-3xl p-xl mb-xl" style={{ boxShadow: "0px 12px 32px rgba(113, 121, 118, 0.08)" }}>
           <h3 className="font-headline-md text-on-surface font-bold mb-lg">This Week</h3>

@@ -112,3 +112,61 @@ export async function sendTodoReminderEmail(
     `,
   });
 }
+
+export async function sendDailyReport(
+  email: string,
+  name: string,
+  stats: {
+    completedToday: number;
+    pendingTotal: number;
+    overdue: number;
+    overdueTasks: string[];
+    upcomingTasks: string[];
+  }
+) {
+  const overdueList = stats.overdueTasks.length > 0
+    ? `<div style="background:#ffdad6; border-radius:12px; padding:16px; margin:16px 0;"><p style="color:#93000a; font-size:14px; margin:0 0 8px 0; font-weight:600;">Overdue</p>${stats.overdueTasks.map((t) => `<p style="color:#93000a; font-size:14px; margin:4px 0;">${t}</p>`).join("")}</div>`
+    : "";
+
+  const upcomingList = stats.upcomingTasks.length > 0
+    ? `<div style="background:#e8f5e9; border-radius:12px; padding:16px; margin:16px 0;"><p style="color:#45645e; font-size:14px; margin:0 0 8px 0; font-weight:600;">Due today / tomorrow</p>${stats.upcomingTasks.map((t) => `<p style="color:#45645e; font-size:14px; margin:4px 0;">${t}</p>`).join("")}</div>`
+    : "";
+
+  await resend.emails.send({
+    from: "Taskly <onboarding@resend.dev>",
+    to: email,
+    subject: `Daily Report — ${stats.completedToday} completed, ${stats.pendingTotal} pending`,
+    html: `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <style>
+            body { font-family: 'DM Sans', sans-serif; background-color: #F7F5F0; color: #131d25; margin: 0; padding: 40px; }
+            .container { max-width: 480px; margin: 0 auto; background: white; border-radius: 24px; padding: 48px; box-shadow: 0 12px 32px rgba(113, 121, 118, 0.08); }
+            h1 { color: #45645e; font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+            p { color: #414846; font-size: 16px; line-height: 24px; }
+            .stat { display: inline-block; text-align: center; padding: 16px 24px; background: #f7f5f0; border-radius: 16px; margin: 4px; }
+            .stat-num { font-size: 28px; font-weight: 700; color: #45645e; display: block; }
+            .stat-label { font-size: 12px; color: #717976; text-transform: uppercase; letter-spacing: 0.5px; }
+            .button { display: inline-block; background-color: #84a59d; color: white; padding: 12px 32px; border-radius: 9999px; text-decoration: none; font-weight: 600; margin-top: 24px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <h1>Daily Report</h1>
+            <p>Hi ${name}, here's your daily Taskly summary:</p>
+            <div style="text-align: center; margin: 24px 0;">
+              <div class="stat"><span class="stat-num">${stats.completedToday}</span><span class="stat-label">Done today</span></div>
+              <div class="stat"><span class="stat-num">${stats.pendingTotal}</span><span class="stat-label">Pending</span></div>
+              <div class="stat"><span class="stat-num">${stats.overdue}</span><span class="stat-label">Overdue</span></div>
+            </div>
+            ${overdueList}
+            ${upcomingList}
+            <a href="${process.env.NEXT_PUBLIC_SUPABASE_URL?.replace('.supabase.co', '.vercel.app') || 'http://localhost:3000'}" class="button">Open Taskly</a>
+            <p style="margin-top: 32px; color: #717976; font-size: 14px;">— The Taskly Team</p>
+          </div>
+        </body>
+      </html>
+    `,
+  });
+}

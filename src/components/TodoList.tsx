@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import {
   DndContext,
   closestCenter,
@@ -24,6 +24,7 @@ import TodoItem from "./TodoItem";
 import ProjectSidebar from "./ProjectSidebar";
 import SectionComponent from "./Section";
 import { addSection } from "@/lib/sections";
+import KeyboardShortcutsModal from "./KeyboardShortcutsModal";
 
 interface TodoListProps {
   initialTodos: Todo[];
@@ -59,34 +60,21 @@ export default function TodoList({
   const [formPriority, setFormPriority] = useState("");
   const [formRecurrence, setFormRecurrence] = useState("");
   const [toast, setToast] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedIndex, setSelectedIndex] = useState(-1);
+  const [showShortcuts, setShowShortcuts] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      const input = document.querySelector<HTMLInputElement>('input[placeholder="What needs to be done?"]');
-
-      if ((e.ctrlKey || e.metaKey) && e.key === "n") {
-        e.preventDefault();
-        input?.focus();
-      }
-
-      if ((e.ctrlKey || e.metaKey) && e.key === "d") {
-        e.preventDefault();
-        const firstActive = todos.find((t) => !t.completed && !t.parent_id);
-        if (firstActive) handleToggle(firstActive.id, true);
-      }
-
-      if (e.key === "Escape" && document.activeElement === input) {
-        input?.blur();
-      }
-    };
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [todos]);
+  const isInputFocused = useCallback(() => {
+    const el = document.activeElement;
+    return el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.tagName === "SELECT" || (el as HTMLElement).isContentEditable);
+  }, []);
 
   useEffect(() => {
     if (toast) {
@@ -108,11 +96,16 @@ export default function TodoList({
   }, []);
 
   const { todayStart, todayEnd, weekEnd } = dateRange;
-
   const rootTodos = useMemo(() => todos.filter((t) => !t.parent_id), [todos]);
+  const completedCount = useMemo(() => todos.filter((t) => t.completed).length, [todos]);
 
   const filteredTodos = useMemo(() => {
     let result = rootTodos;
+
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter((t) => t.title.toLowerCase().includes(q));
+    }
 
     if (view === "inbox") {
       result = result.filter((t) => !t.project_id);
@@ -139,9 +132,92 @@ export default function TodoList({
     }
 
     return result;
-  }, [rootTodos, view, selectedProjectId, selectedLabelId, todayStart, todayEnd, weekEnd, todoLabelsMap]);
+  }, [rootTodos, searchQuery, view, selectedProjectId, selectedLabelId, todayStart, todayEnd, weekEnd, todoLabelsMap]);
 
-  const completedCount = todos.filter((t) => t.completed).length;
+  useEffect(() => {
+    setSelectedIndex(-1);
+  }, [searchQuery, view, selectedProjectId, selectedLabelId]);
+
+  useEffect(() => {
+    if (selectedIndex >= 0 && selectedIndex < filteredTodos.length) {
+      const el = listRef.current?.querySelector(`[data-todo-id="${filteredTodos[selectedIndex].id}"]`);
+      el?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    }
+  }, [selectedIndex, filteredTodos]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "k") {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+        return;
+      }
+
+      if (e.key === "/" && !isInputFocused()) {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+        return;
+      }
+
+      if (e.key === "?" && !isInputFocused()) {
+        e.preventDefault();
+        setShowShortcuts((s) => !s);
+        return;
+      }
+
+      if (e.key === "Escape") {
+        if (showShortcuts) { setShowShortcuts(false); return; }
+        if (searchQuery) { setSearchQuery(""); setSelectedIndex(-1); searchInputRef.current?.blur(); return; }
+        if (isInputFocused()) { (document.activeElement as HTMLElement).blur(); return; }
+      }
+
+      if (isInputFocused()) return;
+
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setSelectedIndex((i) => Math.min(i + 1, filteredTodos.length - 1));
+        return;
+      }
+
+      if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setSelectedIndex((i) => Math.max(i - 1, 0));
+        return;
+      }
+
+      if ((e.key === "Enter" || e.key === " ") && selectedIndex >= 0 && selectedIndex < filteredTodos.length) {
+        e.preventDefault();
+        const todo = filteredTodos[selectedIndex];
+        handleToggle(todo.id, !todo.completed);
+        return;
+      }
+
+      if (e.key === "e" && selectedIndex >= 0 && selectedIndex < filteredTodos.length) {
+        e.preventDefault();
+        const item = listRef.current?.querySelector(`[data-todo-id="${filteredTodos[selectedIndex].id}"]`);
+        item?.dispatchEvent(new CustomEvent("enter-edit", { bubbles: true }));
+        return;
+      }
+
+      if ((e.key === "Delete" || e.key === "Backspace") && selectedIndex >= 0 && selectedIndex < filteredTodos.length) {
+        e.preventDefault();
+        const todo = filteredTodos[selectedIndex];
+        if (confirm(`Delete "${todo.title}"?`)) {
+          handleDelete(todo.id);
+          setSelectedIndex((i) => Math.min(i, filteredTodos.length - 2));
+        }
+        return;
+      }
+
+      if ((e.ctrlKey || e.metaKey) && e.key === "d") {
+        e.preventDefault();
+        const firstActive = todos.find((t) => !t.completed && !t.parent_id);
+        if (firstActive) handleToggle(firstActive.id, true);
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [todos, filteredTodos, selectedIndex, searchQuery, showShortcuts, isInputFocused]);
 
   const todoCounts = useMemo(() => {
     const counts: Record<string, number> = { inbox: 0 };
@@ -195,8 +271,8 @@ export default function TodoList({
       setFormRecurrence("");
       setShowFormOptions(false);
       setToast("Todo added");
-    } catch (e: any) {
-      console.error("addTodo failed:", e?.message || e);
+    } catch (e: unknown) {
+      console.error("addTodo failed:", e instanceof Error ? e.message : e);
       setError("Failed to add todo.");
     } finally {
       setLoading(false);
@@ -311,6 +387,8 @@ export default function TodoList({
 
   return (
     <div className="flex gap-lg">
+      <KeyboardShortcutsModal isOpen={showShortcuts} onClose={() => setShowShortcuts(false)} />
+
       <aside className="w-48 shrink-0 hidden md:block">
         <div className="bg-surface rounded-3xl p-lg" style={{ boxShadow: "0px 12px 32px rgba(113, 121, 118, 0.08)" }}>
           <div className="mb-md">
@@ -402,6 +480,33 @@ export default function TodoList({
                 {tab.label}
               </button>
             ))}
+          </div>
+
+          <div className="relative mb-md">
+            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant/50 text-[18px]">
+              search
+            </span>
+            <input
+              ref={searchInputRef}
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search tasks..."
+              className="w-full h-10 pl-10 pr-10 rounded-xl tactile-input text-sm"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant/50 hover:text-on-surface-variant"
+              >
+                <span className="material-symbols-outlined text-[16px]">close</span>
+              </button>
+            )}
+            {!searchQuery && (
+              <kbd className="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] text-on-surface-variant/40 border border-outline-variant/30 rounded px-1.5 py-0.5 font-mono">
+                /
+              </kbd>
+            )}
           </div>
 
           <form onSubmit={handleSubmit} className="mb-lg">
@@ -534,6 +639,7 @@ export default function TodoList({
               <div className="flex items-center gap-sm">
                 <span className="font-label-md text-on-surface-variant">
                   {filteredTodos.length} task{filteredTodos.length !== 1 ? "s" : ""}
+                  {searchQuery && ` matching "${searchQuery}"`}
                 </span>
               </div>
               {completedCount > 0 && (
@@ -570,11 +676,11 @@ export default function TodoList({
               className="text-center py-xl"
             >
               <p className="font-body-md text-on-surface-variant/60">
-                {view === "today" ? "Nothing due today." : view === "upcoming" ? "Nothing due this week." : "All done!"}
+                {searchQuery ? `No tasks matching "${searchQuery}"` : view === "today" ? "Nothing due today." : view === "upcoming" ? "Nothing due this week." : "All done!"}
               </p>
             </motion.div>
           ) : selectedProjectId && projectSections.length > 0 ? (
-            <div>
+            <div ref={listRef}>
               {projectSections.map((section) => (
                 <SectionComponent
                   key={section.id}
@@ -614,6 +720,7 @@ export default function TodoList({
                                   onAddSubTodo={handleAddSubTodo}
                                   onLabelsChange={setLabels}
                                   onTodoLabelIdsChange={handleTodoLabelIdsChange}
+                                  isSelected={false}
                                 />
                                 {subTodos.length > 0 && (
                                   <div className="ml-12">
@@ -630,6 +737,7 @@ export default function TodoList({
                                           onLabelsChange={setLabels}
                                           onTodoLabelIdsChange={handleTodoLabelIdsChange}
                                           depth={1}
+                                          isSelected={false}
                                         />
                                       </div>
                                     ))}
@@ -653,52 +761,56 @@ export default function TodoList({
               </button>
             </div>
           ) : (
-            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-              <SortableContext items={filteredTodos.map((t) => t.id)} strategy={verticalListSortingStrategy}>
-                <div className="flex flex-col">
-                  <AnimatePresence mode="popLayout">
-                    {filteredTodos.map((todo) => {
-                      const subTodos = getSubTodos(todo.id);
-                      return (
-                        <div key={todo.id}>
-                          <TodoItem
-                            todo={todo}
-                            labels={labels}
-                            todoLabelIds={todoLabelsMap[todo.id] || []}
-                            onToggle={handleToggle}
-                            onDelete={handleDelete}
-                            onUpdate={handleUpdate}
-                            onAddSubTodo={handleAddSubTodo}
-                            onLabelsChange={setLabels}
-                            onTodoLabelIdsChange={handleTodoLabelIdsChange}
-                          />
-                          {subTodos.length > 0 && (
-                            <div className="ml-12">
-                              {subTodos.map((sub) => (
-                                <div key={sub.id}>
-                                  <TodoItem
-                                    todo={sub}
-                                    labels={labels}
-                                    todoLabelIds={todoLabelsMap[sub.id] || []}
-                                    onToggle={handleToggle}
-                                    onDelete={handleDelete}
-                                    onUpdate={handleUpdate}
-                                    onAddSubTodo={handleAddSubTodo}
-                                    onLabelsChange={setLabels}
-                                    onTodoLabelIdsChange={handleTodoLabelIdsChange}
-                                    depth={1}
-                                  />
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </AnimatePresence>
-                </div>
-              </SortableContext>
-            </DndContext>
+            <div ref={listRef}>
+              <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                <SortableContext items={filteredTodos.map((t) => t.id)} strategy={verticalListSortingStrategy}>
+                  <div className="flex flex-col">
+                    <AnimatePresence mode="popLayout">
+                      {filteredTodos.map((todo, index) => {
+                        const subTodos = getSubTodos(todo.id);
+                        return (
+                          <div key={todo.id} data-todo-id={todo.id}>
+                            <TodoItem
+                              todo={todo}
+                              labels={labels}
+                              todoLabelIds={todoLabelsMap[todo.id] || []}
+                              onToggle={handleToggle}
+                              onDelete={handleDelete}
+                              onUpdate={handleUpdate}
+                              onAddSubTodo={handleAddSubTodo}
+                              onLabelsChange={setLabels}
+                              onTodoLabelIdsChange={handleTodoLabelIdsChange}
+                              isSelected={selectedIndex === index}
+                            />
+                            {subTodos.length > 0 && (
+                              <div className="ml-12">
+                                {subTodos.map((sub) => (
+                                  <div key={sub.id}>
+                                    <TodoItem
+                                      todo={sub}
+                                      labels={labels}
+                                      todoLabelIds={todoLabelsMap[sub.id] || []}
+                                      onToggle={handleToggle}
+                                      onDelete={handleDelete}
+                                      onUpdate={handleUpdate}
+                                      onAddSubTodo={handleAddSubTodo}
+                                      onLabelsChange={setLabels}
+                                      onTodoLabelIdsChange={handleTodoLabelIdsChange}
+                                      depth={1}
+                                      isSelected={false}
+                                    />
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </AnimatePresence>
+                  </div>
+                </SortableContext>
+              </DndContext>
+            </div>
           )}
         </div>
       </div>

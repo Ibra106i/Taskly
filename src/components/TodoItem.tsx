@@ -22,6 +22,7 @@ interface TodoItemProps {
   onLabelsChange: (labels: Label[]) => void;
   onTodoLabelIdsChange: (todoId: string, labelIds: string[]) => void;
   depth?: number;
+  isSelected?: boolean;
 }
 
 export default function TodoItem({
@@ -35,6 +36,7 @@ export default function TodoItem({
   onLabelsChange,
   onTodoLabelIdsChange,
   depth = 0,
+  isSelected = false,
 }: TodoItemProps) {
   const [editing, setEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(todo.title);
@@ -80,6 +82,13 @@ export default function TodoItem({
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    const handleEnterEdit = () => setEditing(true);
+    const el = document.querySelector(`[data-todo-id="${todo.id}"]`);
+    el?.addEventListener("enter-edit", handleEnterEdit);
+    return () => el?.removeEventListener("enter-edit", handleEnterEdit);
+  }, [todo.id]);
 
   const saveEdit = () => {
     const title = editTitle.trim();
@@ -139,7 +148,7 @@ export default function TodoItem({
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, x: -20, scale: 0.95 }}
       transition={{ type: "spring", stiffness: 500, damping: 30 }}
-      className="py-md px-lg hover:bg-surface-variant/50 transition-colors group rounded-xl"
+      className={`py-md px-lg hover:bg-surface-variant/50 transition-colors group rounded-xl ${isSelected ? "bg-primary/8 ring-1 ring-primary/20" : ""}`}
     >
       <div className="flex items-center gap-md">
         <div
