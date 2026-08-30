@@ -119,7 +119,7 @@ export default function TodoList({ initialTodos, userId }: TodoListProps) {
       setShowFormOptions(false);
       setToast("Todo added");
     } catch {
-      setError("Failed to add todo. Please try again.");
+      setError("Failed to add todo.");
     } finally {
       setLoading(false);
     }

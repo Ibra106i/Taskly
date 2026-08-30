@@ -12,19 +12,19 @@ Next.js 15, Tailwind CSS, Clerk (auth), Supabase (database), Resend (email)
 
 ## Users
 
-Students, founders, professionals, and anyone who desires to be organized. They need a simple, fast way to manage tasks without friction — and they want intelligent insights that help them work better over time.
+Students, founders, professionals, and anyone who wants to stay organized. They need a simple, fast way to manage tasks — and they want AI-powered trend analysis of their productivity patterns.
 
 ## Product Purpose
 
-Taskly helps people stay organized with a clean, minimal todo app — and gives power users an edge through AI-powered trend analysis of their productivity patterns. The core todo experience is free and unlimited. We charge for advanced AI capabilities, not for basic features like task duration or categories.
+Taskly helps people stay organized with a clean, minimal todo app — and gives power users an edge through AI trend analysis of their productivity patterns. The core todo experience is free and unlimited. We charge for advanced AI capabilities, not for basic features like task duration or categories.
 
 ## Positioning
 
-Most todo apps either charge for premium features (tags, durations, categories) or offer AI as an upsell on top of a free tier. Taskly flips this: every core task management feature is free forever. The AI layer — which studies your productivity trends, surfaces patterns, and gives actionable insights — is the paid product. No bait-and-switch, no feature gates on basics.
+Most todo apps either charge for premium features (tags, durations, categories) or offer AI as an upsell on top of a free tier. Taskly does the opposite: every core task management feature is free forever. The AI layer — which studies your productivity trends, surfaces patterns, and gives actionable insights — is the paid product. No tricks, no feature gates on basics.
 
 ## Operating Context
 
-Users interact with Taskly daily, often multiple times. The primary workflow is: open app → see todos → add/toggle/delete → optionally check AI insights. Users may check in briefly between classes, meetings, or tasks. The experience should feel instant and effortless — not a productivity tool that demands attention, but one that disappears into the routine.
+Users interact with Taskly daily, often multiple times. The primary workflow is: open app → see todos → add/toggle/delete → optionally check AI insights. Users may check in briefly between classes, meetings, or tasks. The experience should feel fast and simple — not a tool that demands attention, but one that fits into the routine.
 
 ## Capabilities and Constraints
 
