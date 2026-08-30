@@ -30,7 +30,10 @@ export default function RootLayout({
         </head>
         <body className={`${dmSans.variable} font-body-md antialiased`}>
           {children}
-        </body>
+        {/* impeccable-live-start */}
+<script src="http://localhost:8400/live.js?token=5065b929-2f6a-46ca-8c25-34c7698f03a2"></script>
+{/* impeccable-live-end */}
+</body>
       </html>
     </ClerkProvider>
   );

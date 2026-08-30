@@ -1,53 +1,293 @@
 "use client";
 
+import { useState, useRef, useEffect } from "react";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+
 interface Todo {
   id: string;
   title: string;
   completed: boolean;
   created_at: string;
+  due_date: string | null;
+  duration_minutes: number | null;
+  category: string | null;
 }
 
 interface TodoItemProps {
   todo: Todo;
   onToggle: (id: string, completed: boolean) => void;
   onDelete: (id: string) => void;
+  onUpdate: (id: string, updates: { title?: string; due_date?: string | null; duration_minutes?: number | null; category?: string | null }) => void;
 }
 
-export default function TodoItem({ todo, onToggle, onDelete }: TodoItemProps) {
+const CATEGORIES = [
+  { name: "Work", color: "#45645e" },
+  { name: "Personal", color: "#8c4e35" },
+  { name: "School", color: "#7b554d" },
+  { name: "Health", color: "#84a59d" },
+];
+
+const DURATIONS = [5, 10, 15, 30, 45, 60, 90, 120];
+
+function formatDate(dateStr: string): string {
+  const date = new Date(dateStr);
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const taskDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+  if (taskDate.getTime() === today.getTime()) return "Today";
+  if (taskDate.getTime() === tomorrow.getTime()) return "Tomorrow";
+  if (taskDate < today) return "Overdue";
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
+function getDueDateColor(dateStr: string): string {
+  const date = new Date(dateStr);
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const taskDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+  if (taskDate < today) return "text-error";
+  if (taskDate.getTime() === today.getTime()) return "text-[#8c4e35]";
+  return "text-on-surface-variant";
+}
+
+function formatDuration(minutes: number): string {
+  if (minutes < 60) return `${minutes}m`;
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return m > 0 ? `${h}h ${m}m` : `${h}h`;
+}
+
+export default function TodoItem({ todo, onToggle, onDelete, onUpdate }: TodoItemProps) {
+  const [editing, setEditing] = useState(false);
+  const [editTitle, setEditTitle] = useState(todo.title);
+  const [editDueDate, setEditDueDate] = useState(todo.due_date?.split("T")[0] || "");
+  const [editDuration, setEditDuration] = useState(todo.duration_minutes?.toString() || "");
+  const [editCategory, setEditCategory] = useState(todo.category || "");
+  const [showOptions, setShowOptions] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const optionsRef = useRef<HTMLDivElement>(null);
+
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: todo.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 10 : 0,
+  };
+
+  useEffect(() => {
+    if (editing && inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.select();
+    }
+  }, [editing]);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (optionsRef.current && !optionsRef.current.contains(e.target as Node)) {
+        setShowOptions(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const saveEdit = () => {
+    const title = editTitle.trim();
+    if (!title) {
+      setEditTitle(todo.title);
+      setEditing(false);
+      return;
+    }
+
+    onUpdate(todo.id, {
+      title,
+      due_date: editDueDate ? new Date(editDueDate).toISOString() : null,
+      duration_minutes: editDuration ? parseInt(editDuration) : null,
+      category: editCategory || null,
+    });
+    setEditing(false);
+  };
+
+  const cancelEdit = () => {
+    setEditTitle(todo.title);
+    setEditDueDate(todo.due_date?.split("T")[0] || "");
+    setEditDuration(todo.duration_minutes?.toString() || "");
+    setEditCategory(todo.category || "");
+    setEditing(false);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") saveEdit();
+    if (e.key === "Escape") cancelEdit();
+  };
+
+  const categoryObj = todo.category ? CATEGORIES.find((c) => c.name === todo.category) : null;
+
   return (
-    <div className="flex items-center gap-md py-lg px-lg hover:bg-[#F7F5F0]/50 transition-colors group rounded-xl">
-      <button
-        onClick={() => onToggle(todo.id, !todo.completed)}
-        className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all shrink-0 ${
-          todo.completed
-            ? "bg-primary border-primary"
-            : "border-outline-variant hover:border-primary"
-        }`}
-      >
-        {todo.completed && (
-          <span className="material-symbols-outlined text-[14px] text-on-primary">
-            check
-          </span>
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="py-lg px-lg hover:bg-[#F7F5F0]/50 transition-colors group rounded-xl"
+    >
+      <div className="flex items-center gap-md">
+        <div
+          {...attributes}
+          {...listeners}
+          className="cursor-grab active:cursor-grabbing text-outline-variant/40 hover:text-outline-variant transition-colors shrink-0 touch-none"
+        >
+          <span className="material-symbols-outlined text-[18px]">drag_indicator</span>
+        </div>
+
+        <button
+          onClick={() => onToggle(todo.id, !todo.completed)}
+          className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all shrink-0 ${
+            todo.completed
+              ? "bg-primary border-primary"
+              : "border-outline-variant hover:border-primary"
+          }`}
+        >
+          {todo.completed && (
+            <span className="material-symbols-outlined text-[14px] text-on-primary">
+              check
+            </span>
+          )}
+        </button>
+
+        {editing ? (
+          <div className="flex-1 flex flex-col gap-sm">
+            <input
+              ref={inputRef}
+              type="text"
+              value={editTitle}
+              onChange={(e) => setEditTitle(e.target.value)}
+              onKeyDown={handleKeyDown}
+              onBlur={saveEdit}
+              className="w-full h-8 px-2 rounded-lg bg-[#F7F5F0] border-none shadow-inner-soft font-body-md text-on-surface focus:ring-2 focus:ring-primary focus:outline-none"
+            />
+            <div className="flex gap-sm flex-wrap">
+              <input
+                type="date"
+                value={editDueDate}
+                onChange={(e) => setEditDueDate(e.target.value)}
+                className="h-7 px-2 rounded-lg bg-[#F7F5F0] border-none shadow-inner-soft font-label-sm text-on-surface-variant focus:ring-2 focus:ring-primary focus:outline-none text-[12px]"
+              />
+              <select
+                value={editDuration}
+                onChange={(e) => setEditDuration(e.target.value)}
+                className="h-7 px-2 rounded-lg bg-[#F7F5F0] border-none shadow-inner-soft font-label-sm text-on-surface-variant focus:ring-2 focus:ring-primary focus:outline-none text-[12px]"
+              >
+                <option value="">Duration</option>
+                {DURATIONS.map((d) => (
+                  <option key={d} value={d}>{formatDuration(d)}</option>
+                ))}
+              </select>
+              <div className="flex gap-xs">
+                {CATEGORIES.map((cat) => (
+                  <button
+                    key={cat.name}
+                    type="button"
+                    onClick={() => setEditCategory(editCategory === cat.name ? "" : cat.name)}
+                    className={`h-7 px-2 rounded-full text-[11px] font-medium transition-all ${
+                      editCategory === cat.name
+                        ? "text-on-primary"
+                        : "text-on-surface-variant hover:opacity-80"
+                    }`}
+                    style={{
+                      backgroundColor: editCategory === cat.name ? cat.color : `${cat.color}20`,
+                    }}
+                  >
+                    {cat.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="flex-1 min-w-0">
+            <span
+              onDoubleClick={() => setEditing(true)}
+              className={`font-body-md transition-all cursor-pointer block ${
+                todo.completed
+                  ? "text-on-surface-variant line-through decoration-outline-variant/50"
+                  : "text-on-surface"
+              }`}
+            >
+              {todo.title}
+            </span>
+            <div className="flex items-center gap-sm mt-xs flex-wrap">
+              {todo.due_date && (
+                <span className={`font-label-sm ${getDueDateColor(todo.due_date)}`}>
+                  {formatDate(todo.due_date)}
+                </span>
+              )}
+              {todo.duration_minutes && (
+                <span className="font-label-sm text-on-surface-variant">
+                  {formatDuration(todo.duration_minutes)}
+                </span>
+              )}
+              {categoryObj && (
+                <span
+                  className="font-label-sm px-xs py-[1px] rounded-full text-on-primary"
+                  style={{ backgroundColor: categoryObj.color }}
+                >
+                  {categoryObj.name}
+                </span>
+              )}
+            </div>
+          </div>
         )}
-      </button>
 
-      <span
-        className={`flex-1 font-body-md transition-all ${
-          todo.completed
-            ? "text-on-surface-variant line-through decoration-outline-variant/50"
-            : "text-on-surface"
-        }`}
-      >
-        {todo.title}
-      </span>
+        {!editing && (
+          <div className="relative" ref={optionsRef}>
+            <button
+              onClick={() => setShowOptions(!showOptions)}
+              className="opacity-0 group-hover:opacity-100 transition-all text-on-surface-variant hover:text-on-surface p-sm rounded-lg hover:bg-[#F7F5F0]"
+              aria-label="More options"
+            >
+              <span className="material-symbols-outlined text-[18px]">more_horiz</span>
+            </button>
 
-      <button
-        onClick={() => onDelete(todo.id)}
-        className="opacity-0 group-hover:opacity-100 transition-all text-on-surface-variant hover:text-error p-sm rounded-lg hover:bg-error-container/20"
-        aria-label="Delete todo"
-      >
-        <span className="material-symbols-outlined text-[18px]">delete</span>
-      </button>
+            {showOptions && (
+              <div className="absolute right-0 top-full mt-1 bg-surface-container-lowest rounded-xl shadow-soft p-sm z-10 min-w-[120px]">
+                <button
+                  onClick={() => {
+                    setEditing(true);
+                    setShowOptions(false);
+                  }}
+                  className="w-full flex items-center gap-sm px-md py-sm rounded-lg hover:bg-[#F7F5F0] text-on-surface-variant text-[13px] font-medium transition-colors"
+                >
+                  <span className="material-symbols-outlined text-[16px]">edit</span>
+                  Edit
+                </button>
+                <button
+                  onClick={() => {
+                    onDelete(todo.id);
+                    setShowOptions(false);
+                  }}
+                  className="w-full flex items-center gap-sm px-md py-sm rounded-lg hover:bg-error-container/20 text-error text-[13px] font-medium transition-colors"
+                >
+                  <span className="material-symbols-outlined text-[16px]">delete</span>
+                  Delete
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

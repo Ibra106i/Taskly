@@ -26,3 +26,75 @@ To learn more, including how to opt-out from the telemetry program, visit: https
  ✓ Compiled in 228ms (389 modules)
  ✓ Compiled in 1796ms (389 modules)
  ✓ Compiled in 718ms (389 modules)
+ ✓ Compiled in 2.6s (389 modules)
+ ✓ Compiled in 2.2s (389 modules)
+ ✓ Compiled in 1981ms (389 modules)
+ ✓ Compiled in 415ms (389 modules)
+ ○ Compiling /login ...
+ ✓ Compiled /login in 638ms (715 modules)
+ GET /login?redirect_url=http%3A%2F%2Flocalhost%3A3000%2F 200 in 1921ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 3.5s (1109 modules)
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 4255ms
+ GET /login?redirect_url=http%3A%2F%2Flocalhost%3A3000%2F 200 in 158ms
+ ✓ Compiled in 2.7s (1104 modules)
+ GET /login?redirect_url=http%3A%2F%2Flocalhost%3A3000%2F 200 in 477ms
+ ✓ Compiled in 786ms (1104 modules)
+ GET /login?redirect_url=http%3A%2F%2Flocalhost%3A3000%2F 200 in 201ms
+ ✓ Compiled in 1413ms (1104 modules)
+ GET /login?redirect_url=http%3A%2F%2Flocalhost%3A3000%2F 200 in 422ms
+ GET /login?redirect_url=http%3A%2F%2Flocalhost%3A3000%2F 200 in 813ms
+ ○ Compiling /favicon.ico ...
+ ✓ Compiled /favicon.ico in 1444ms (720 modules)
+ GET /favicon.ico 200 in 1912ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 1481ms (1095 modules)
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 2297ms
+ ✓ Compiled in 783ms (1109 modules)
+ GET /login?redirect_url=http%3A%2F%2Flocalhost%3A3000%2F 200 in 210ms
+ ✓ Compiled in 1067ms (1109 modules)
+ GET /login?redirect_url=http%3A%2F%2Flocalhost%3A3000%2F 200 in 205ms
+ GET /login?redirect_url=http%3A%2F%2Flocalhost%3A3000%2F 200 in 664ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 246ms
+ ○ Compiling /favicon.ico ...
+ ✓ Compiled /favicon.ico in 691ms (721 modules)
+ GET /favicon.ico 200 in 1001ms
+ ✓ Compiled in 883ms (1114 modules)
+ GET /login?redirect_url=http%3A%2F%2Flocalhost%3A3000%2F 200 in 350ms
+ ✓ Compiled in 969ms (1114 modules)
+ ⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ GET /login?redirect_url=http%3A%2F%2Flocalhost%3A3000%2F 200 in 785ms
+ GET /login?redirect_url=http%3A%2F%2Flocalhost%3A3000%2F 200 in 771ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 150ms
+ GET /favicon.ico 200 in 36ms
+ GET /login/SignIn_clerk_catchall_check_1788036510647 404 in 103ms
+ ✓ Compiled in 550ms (393 modules)
+ GET /login?redirect_url=http%3A%2F%2Flocalhost%3A3000%2F 200 in 119ms
+ GET /login?redirect_url=http%3A%2F%2Flocalhost%3A3000%2F 200 in 139ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 137ms
+ GET /favicon.ico 200 in 112ms
+ GET /login/SignIn_clerk_catchall_check_1788036871491 404 in 86ms
+ GET /login?redirect_url=http%3A%2F%2Flocalhost%3A3000%2Flogin%2Fsso-callback%3Fredirect_url%3Dhttp%253A%252F%252Flocalhost%253A3000%252F 200 in 116ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 126ms
+ GET /login/SignIn_clerk_catchall_check_1788036889908 404 in 89ms
+ ✓ Compiled in 512ms (393 modules)
+ GET /login?redirect_url=http%3A%2F%2Flocalhost%3A3000%2Flogin%2Fsso-callback%3Fredirect_url%3Dhttp%253A%252F%252Flocalhost%253A3000%252F 200 in 56ms
+ ✓ Compiled in 316ms (332 modules)
+ ○ Compiling /login/[[...rest]] ...
+ ✓ Compiled /login/[[...rest]] in 3.3s (1311 modules)
+ ✓ Compiled in 516ms (211 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (273kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
+ GET /login?redirect_url=http%3A%2F%2Flocalhost%3A3000%2Flogin%2Fsso-callback%3Fredirect_url%3Dhttp%253A%252F%252Flocalhost%253A3000%252F 200 in 6226ms
+Clerk - DEPRECATION WARNING: "createRouteMatcher" is deprecated and will be removed in the next major release.
+Use resource-based auth checks instead. Move auth checks into each page, layout, API route, or Server Function that accesses protected data. Middleware-based auth checks rely on path matching, which can diverge from how Next.js routes requests and leave protected resources reachable. For a migration guide, see: https://clerk.com/docs/guides/development/upgrading/upgrade-guides/migrate-from-create-route-matcher
+ GET /login?redirect_url=http%3A%2F%2Flocalhost%3A3000%2Flogin%2Fsso-callback%3Fredirect_url%3Dhttp%253A%252F%252Flocalhost%253A3000%252F 200 in 96ms
+ GET /login?redirect_url=http%3A%2F%2Flocalhost%3A3000%2Flogin%2Fsso-callback%3Fredirect_url%3Dhttp%253A%252F%252Flocalhost%253A3000%252F 200 in 96ms
+ GET /login?redirect_url=http%3A%2F%2Flocalhost%3A3000%2Flogin%2Fsso-callback%3Fredirect_url%3Dhttp%253A%252F%252Flocalhost%253A3000%252F 200 in 80ms
+ GET /login?redirect_url=http%3A%2F%2Flocalhost%3A3000%2Flogin%2Fsso-callback%3Fredirect_url%3Dhttp%253A%252F%252Flocalhost%253A3000%252F 200 in 79ms
+ GET /login?redirect_url=http%3A%2F%2Flocalhost%3A3000%2Flogin%2Fsso-callback%3Fredirect_url%3Dhttp%253A%252F%252Flocalhost%253A3000%252F 200 in 88ms
+ GET /login/SignIn_clerk_catchall_check_1788036939003 200 in 715ms
+ ✓ Compiled in 922ms (1109 modules)
+ GET /login/SignIn_clerk_catchall_check_1788036942801 200 in 1092ms
+ GET /login?redirect_url=http%3A%2F%2Flocalhost%3A3000%2Flogin%2Fsso-callback%3Fredirect_url%3Dhttp%253A%252F%252Flocalhost%253A3000%252F 200 in 1082ms
+ ✓ Compiled in 601ms (393 modules)
+ GET /login?redirect_url=http%3A%2F%2Flocalhost%3A3000%2Flogin%2Fsso-callback%3Fredirect_url%3Dhttp%253A%252F%252Flocalhost%253A3000%252F 200 in 102ms
