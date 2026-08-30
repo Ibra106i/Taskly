@@ -170,7 +170,7 @@ export default function TodoList({ initialTodos, userId }: TodoListProps) {
   return (
     <div className="bg-surface-container-lowest rounded-3xl shadow-soft p-xl">
       {toast && (
-        <div className="mb-lg flex items-center gap-sm bg-primary/10 text-primary rounded-xl p-md font-label-md animate-in fade-in slide-in-from-top-2 duration-200">
+        <div className="mb-lg flex items-center gap-sm bg-primary/10 text-primary rounded-xl p-md font-label-md transition-all">
           <span className="material-symbols-outlined text-[16px]">check_circle</span>
           {toast}
         </div>
