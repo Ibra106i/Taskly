@@ -6,7 +6,6 @@ import { generateApiKey, listApiKeys, revokeApiKey } from "@/lib/api-keys";
 
 interface ApiKeyEntry {
   id: string;
-  prefix: string;
   created_at: string;
   last_used_at: string | null;
 }
@@ -136,7 +135,7 @@ export default function ApiKeyManager() {
               <div>
                 <div className="flex items-center gap-2">
                   <span className="font-mono text-sm text-[var(--color-text)]">
-                    {key.prefix}...
+                    {key.id.slice(0, 8)}...
                   </span>
                   <span className="text-xs text-[var(--color-text-muted)]">
                     Created {new Date(key.created_at).toLocaleDateString()}

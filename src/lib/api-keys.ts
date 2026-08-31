@@ -1,8 +1,7 @@
 "use server";
 
 import { auth } from "@clerk/nextjs/server";
-import { createClient } from "@supabase/supabase-js";
-import { createHash, randomBytes, timingSafeEqual } from "crypto";
+import { createHash, randomBytes } from "crypto";
 import { createSupabaseClient } from "@/lib/supabase/server";
 
 function hashKey(key: string): string {
@@ -14,14 +13,13 @@ export async function generateApiKey(): Promise<{ key: string; id: string }> {
   if (!userId) throw new Error("Unauthorized");
 
   const supabase = createSupabaseClient();
-  const randomBytesBuffer = randomBytes(32);
+  const randomBytesBuffer = randomBytes(48);
   const key = `tk_${randomBytesBuffer.toString("base64url")}`;
-  const prefix = key.slice(0, 8);
   const keyHash = hashKey(key);
 
   const { data, error } = await supabase
     .from("api_keys")
-    .insert({ user_id: userId, key_hash: keyHash, prefix })
+    .insert({ user_id: userId, key_hash: keyHash })
     .select("id")
     .single();
 
@@ -30,7 +28,7 @@ export async function generateApiKey(): Promise<{ key: string; id: string }> {
 }
 
 export async function listApiKeys(): Promise<
-  { id: string; prefix: string; created_at: string; last_used_at: string | null }[]
+  { id: string; created_at: string; last_used_at: string | null }[]
 > {
   const { userId } = await auth();
   if (!userId) throw new Error("Unauthorized");
@@ -38,7 +36,7 @@ export async function listApiKeys(): Promise<
   const supabase = createSupabaseClient();
   const { data, error } = await supabase
     .from("api_keys")
-    .select("id, prefix, created_at, last_used_at")
+    .select("id, created_at, last_used_at")
     .eq("user_id", userId)
     .order("created_at", { ascending: false });
 
