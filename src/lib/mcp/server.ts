@@ -1,13 +1,6 @@
 import { McpServer } from "@modelcontextprotocol/server";
 import { z } from "zod";
-import { createClient } from "@supabase/supabase-js";
-
-function getSupabase() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
-}
+import { createSupabaseClient } from "@/lib/supabase/server";
 
 export function createTasklyMcpServer(userId: string): McpServer {
   const server = new McpServer({ name: "taskly", version: "1.0.0" });
@@ -22,7 +15,7 @@ export function createTasklyMcpServer(userId: string): McpServer {
       search: z.string().optional().describe("Search todos by title"),
     },
   }, async (params) => {
-    const supabase = getSupabase();
+    const supabase = createSupabaseClient();
     let query = supabase.from("todos").select("*").eq("user_id", userId);
 
     if (params.search) query = query.ilike("title", `%${params.search}%`);
@@ -65,7 +58,7 @@ export function createTasklyMcpServer(userId: string): McpServer {
     description: "Get a single todo by ID with sub-tasks and labels.",
     inputSchema: { id: z.string().describe("Todo ID") },
   }, async (params) => {
-    const supabase = getSupabase();
+    const supabase = createSupabaseClient();
     const { data: todo, error } = await supabase.from("todos").select("*").eq("id", params.id).eq("user_id", userId).single();
     if (error || !todo) return { content: [{ type: "text" as const, text: "Todo not found." }] };
 
@@ -91,7 +84,7 @@ export function createTasklyMcpServer(userId: string): McpServer {
       recurrence_rule: z.string().optional().describe("Recurrence rule"),
     },
   }, async (params) => {
-    const supabase = getSupabase();
+    const supabase = createSupabaseClient();
     const { data: existing } = await supabase.from("todos").select("position").eq("user_id", userId).is("parent_id", null).order("position", { ascending: false }).limit(1);
     const position = existing?.length ? (existing[0].position || 0) + 1 : 0;
 
@@ -117,7 +110,7 @@ export function createTasklyMcpServer(userId: string): McpServer {
       project_id: z.string().optional().describe("New project ID or empty to unassign"),
     },
   }, async (params) => {
-    const supabase = getSupabase();
+    const supabase = createSupabaseClient();
     const updates: Record<string, unknown> = {};
     if (params.title !== undefined) updates.title = params.title;
     if (params.due_date !== undefined) updates.due_date = params.due_date || null;
@@ -136,7 +129,7 @@ export function createTasklyMcpServer(userId: string): McpServer {
     description: "Delete a todo by ID.",
     inputSchema: { id: z.string().describe("Todo ID to delete") },
   }, async (params) => {
-    const supabase = getSupabase();
+    const supabase = createSupabaseClient();
     const { error } = await supabase.from("todos").delete().eq("id", params.id).eq("user_id", userId);
     if (error) return { content: [{ type: "text" as const, text: `Error: ${error.message}` }] };
     return { content: [{ type: "text" as const, text: `Todo ${params.id} deleted.` }] };
@@ -150,7 +143,7 @@ export function createTasklyMcpServer(userId: string): McpServer {
       completed: z.boolean().describe("New completed status"),
     },
   }, async (params) => {
-    const supabase = getSupabase();
+    const supabase = createSupabaseClient();
     const { error } = await supabase.from("todos").update({ completed: params.completed }).eq("id", params.id).eq("user_id", userId);
     if (error) return { content: [{ type: "text" as const, text: `Error: ${error.message}` }] };
     return { content: [{ type: "text" as const, text: `Todo ${params.id} marked as ${params.completed ? "completed" : "not completed"}.` }] };
@@ -161,7 +154,7 @@ export function createTasklyMcpServer(userId: string): McpServer {
     description: "List all projects.",
     inputSchema: {},
   }, async () => {
-    const supabase = getSupabase();
+    const supabase = createSupabaseClient();
     const { data: projects, error } = await supabase.from("projects").select("*").eq("user_id", userId).order("name");
     if (error) return { content: [{ type: "text" as const, text: `Error: ${error.message}` }] };
     if (!projects?.length) return { content: [{ type: "text" as const, text: "No projects found." }] };
@@ -174,7 +167,7 @@ export function createTasklyMcpServer(userId: string): McpServer {
     description: "List all labels.",
     inputSchema: {},
   }, async () => {
-    const supabase = getSupabase();
+    const supabase = createSupabaseClient();
     const { data: labels, error } = await supabase.from("labels").select("*").eq("user_id", userId).order("name");
     if (error) return { content: [{ type: "text" as const, text: `Error: ${error.message}` }] };
     if (!labels?.length) return { content: [{ type: "text" as const, text: "No labels found." }] };
@@ -187,7 +180,7 @@ export function createTasklyMcpServer(userId: string): McpServer {
     description: "Search todos by title.",
     inputSchema: { query: z.string().describe("Search query") },
   }, async (params) => {
-    const supabase = getSupabase();
+    const supabase = createSupabaseClient();
     const { data: todos, error } = await supabase.from("todos").select("*").eq("user_id", userId).ilike("title", `%${params.query}%`).order("position", { ascending: true }).limit(20);
     if (error) return { content: [{ type: "text" as const, text: `Error: ${error.message}` }] };
     if (!todos?.length) return { content: [{ type: "text" as const, text: `No todos matching "${params.query}".` }] };

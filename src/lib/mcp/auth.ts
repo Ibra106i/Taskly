@@ -1,11 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { createHash, timingSafeEqual } from "crypto";
 import type { OAuthTokenVerifier, AuthInfo } from "@modelcontextprotocol/server";
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+import { createSupabaseClient } from "@/lib/supabase/server";
 
 function hashKey(key: string): string {
   return createHash("sha256").update(key).digest("hex");
@@ -20,6 +16,7 @@ function timingSafeCompare(a: string, b: string): boolean {
 
 export const apiKeyVerifier: OAuthTokenVerifier = {
   async verifyAccessToken(token: string): Promise<AuthInfo> {
+    const supabase = createSupabaseClient();
     const keyHash = hashKey(token);
     const prefix = token.slice(0, 8);
 
