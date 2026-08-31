@@ -67,6 +67,9 @@ export default async function Home() {
             <Link href="/stats" className="p-sm rounded-lg hover:bg-primary/10 transition-colors text-on-surface-variant hover:text-on-surface">
               <span className="material-symbols-outlined text-[20px]">bar_chart</span>
             </Link>
+            <Link href="/settings" className="p-sm rounded-lg hover:bg-primary/10 transition-colors text-on-surface-variant hover:text-on-surface">
+              <span className="material-symbols-outlined text-[20px]">settings</span>
+            </Link>
             <ThemeToggle />
             <SignOutButton />
           </div>
