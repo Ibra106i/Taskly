@@ -1,12 +1,9 @@
 "use server";
 
 import { auth } from "@clerk/nextjs/server";
-import { createHash, randomBytes } from "crypto";
+import { randomBytes } from "crypto";
 import { createSupabaseClient } from "@/lib/supabase/server";
-
-function hashKey(key: string): string {
-  return createHash("sha256").update(key).digest("hex");
-}
+import { hashKey } from "@/lib/mcp/crypto";
 
 export async function generateApiKey(): Promise<{ key: string; id: string }> {
   const { userId } = await auth();

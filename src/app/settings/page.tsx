@@ -7,6 +7,8 @@ export default async function SettingsPage() {
   const { userId } = await auth();
   if (!userId) redirect("/login");
 
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+
   return (
     <div className="min-h-screen bg-[var(--color-bg)] p-6">
       <div className="max-w-2xl mx-auto">
@@ -31,7 +33,7 @@ export default async function SettingsPage() {
               <div>
                 <p className="text-sm text-[var(--color-text-muted)] mb-1">Server URL</p>
                 <code className="block text-sm text-[var(--color-text)] bg-[var(--color-surface-inset)] px-3 py-2 rounded-xl font-mono">
-                  {typeof window !== "undefined" ? window.location.origin : "http://localhost:3000"}/api/mcp
+                  {appUrl}/api/mcp
                 </code>
               </div>
               <div>
@@ -40,7 +42,7 @@ export default async function SettingsPage() {
 {`{
   "mcpServers": {
     "taskly": {
-      "url": "http://localhost:3000/api/mcp",
+      "url": "${appUrl}/api/mcp",
       "headers": {
         "Authorization": "Bearer <your-api-key>"
       }

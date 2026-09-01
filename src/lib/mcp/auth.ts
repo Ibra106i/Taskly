@@ -1,21 +1,6 @@
-import { createHash, timingSafeEqual } from "crypto";
 import type { OAuthTokenVerifier, AuthInfo } from "@modelcontextprotocol/server";
 import { createSupabaseClient } from "@/lib/supabase/server";
-
-function hashKey(key: string): string {
-  return createHash("sha256").update(key).digest("hex");
-}
-
-function timingSafeCompare(a: string, b: string): boolean {
-  const bufA = Buffer.from(a);
-  const bufB = Buffer.from(b);
-  if (bufA.length !== bufB.length) return false;
-  return timingSafeEqual(bufA, bufB);
-}
-
-export function escapeLike(input: string): string {
-  return input.replace(/[%_\\]/g, "\\$&");
-}
+import { hashKey, timingSafeCompare } from "@/lib/mcp/crypto";
 
 export const apiKeyVerifier: OAuthTokenVerifier = {
   async verifyAccessToken(token: string): Promise<AuthInfo> {
