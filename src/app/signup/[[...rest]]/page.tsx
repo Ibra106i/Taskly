@@ -1,9 +1,28 @@
 "use client";
 
+import { useEffect } from "react";
 import { SignUp } from "@clerk/nextjs";
 import Link from "next/link";
 
 export default function SignupPage() {
+  useEffect(() => {
+    const interval = setInterval(() => {
+      document.querySelectorAll("[data-variant='developmentMode']").forEach((el) => {
+        (el as HTMLElement).style.display = "none";
+      });
+      document.querySelectorAll(".clerk-dev-mode-banner, [class*='DevMode']").forEach((el) => {
+        (el as HTMLElement).style.display = "none";
+      });
+      const allDivs = document.querySelectorAll("div");
+      allDivs.forEach((div) => {
+        if (div.textContent?.trim() === "Development mode") {
+          (div as HTMLElement).closest("div")?.remove();
+        }
+      });
+    }, 100);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <main className="min-h-screen flex items-center justify-center bg-[#F7F5F0]">
       <div className="w-full max-w-[440px] px-4">
