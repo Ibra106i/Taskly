@@ -7,41 +7,31 @@ export async function checkRateLimit(
   supabase: SupabaseClient,
   key: string
 ): Promise<{ allowed: boolean; retryAfterMs?: number }> {
-  const windowStart = new Date(Date.now() - WINDOW_MS).toISOString();
-
+  // Atomic check via PostgreSQL function — no TOCTOU race.
+  // The function inserts or increments in a single statement.
   const { data, error } = await supabase
-    .from("rate_limits")
-    .select("count, window_start")
-    .eq("key", key)
-    .gt("window_start", windowStart)
-    .order("window_start", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+    .rpc("rate_limit_check", { p_key: key, p_window_ms: WINDOW_MS });
 
   if (error) {
     console.error("Rate limit check failed:", error.message);
     return { allowed: true };
   }
 
-  if (!data) {
-    const { error: insertError } = await supabase
-      .from("rate_limits")
-      .insert({ key, count: 1 });
-    if (insertError) console.error("Rate limit insert failed:", insertError.message);
-    return { allowed: true };
-  }
+  const count = data as number;
 
-  if (data.count >= MAX_ATTEMPTS) {
-    const retryAfterMs = new Date(data.window_start).getTime() + WINDOW_MS - Date.now();
+  if (count > MAX_ATTEMPTS) {
+    // Re-fetch window_start for retry-after calculation
+    const { data: row } = await supabase
+      .from("rate_limits")
+      .select("window_start")
+      .eq("key", key)
+      .single();
+
+    const retryAfterMs = row
+      ? new Date(row.window_start).getTime() + WINDOW_MS - Date.now()
+      : WINDOW_MS;
     return { allowed: false, retryAfterMs: Math.max(0, retryAfterMs) };
   }
-
-  const { error: updateError } = await supabase
-    .from("rate_limits")
-    .update({ count: data.count + 1 })
-    .eq("key", key)
-    .eq("window_start", data.window_start);
-  if (updateError) console.error("Rate limit update failed:", updateError.message);
 
   return { allowed: true };
 }
@@ -62,4 +52,14 @@ export async function recordSuccess(
     .delete()
     .eq("key", key);
   if (error) console.error("Rate limit delete failed:", error.message);
+}
+
+export async function cleanupExpiredRateLimits(
+  supabase: SupabaseClient
+): Promise<void> {
+  const { error } = await supabase
+    .from("rate_limits")
+    .delete()
+    .lt("window_start", new Date(Date.now() - 5 * 60_000).toISOString());
+  if (error) console.error("Rate limit cleanup failed:", error.message);
 }
