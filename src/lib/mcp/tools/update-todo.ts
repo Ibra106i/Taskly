@@ -1,9 +1,8 @@
 import { z } from "zod";
-import { createSupabaseClient } from "@/lib/supabase/server";
-import { UUID, TITLE_MAX } from "@/lib/mcp/schema";
+import { UUID, TITLE_MAX, type McpContext } from "@/lib/mcp/schema";
 import type { McpServer } from "@modelcontextprotocol/server";
 
-export function registerUpdateTodo(server: McpServer, userId: string) {
+export function registerUpdateTodo(server: McpServer, ctx: McpContext) {
   server.registerTool("update_todo", {
     title: "Update Todo",
     description: "Update an existing todo. Only provided fields change.",
@@ -16,7 +15,6 @@ export function registerUpdateTodo(server: McpServer, userId: string) {
       project_id: UUID.optional().describe("New project ID or empty to unassign"),
     },
   }, async (params) => {
-    const supabase = createSupabaseClient();
     const updates: Record<string, unknown> = {};
     if (params.title !== undefined) updates.title = params.title;
     if (params.due_date !== undefined) updates.due_date = params.due_date || null;
@@ -26,13 +24,16 @@ export function registerUpdateTodo(server: McpServer, userId: string) {
     if (!Object.keys(updates).length) return { content: [{ type: "text" as const, text: "No fields to update." }] };
 
     if (params.project_id) {
-      const { data: project } = await supabase
-        .from("projects").select("id").eq("id", params.project_id).eq("user_id", userId).single();
+      const { data: project } = await ctx.supabase
+        .from("projects").select("id").eq("id", params.project_id).eq("user_id", ctx.userId).single();
       if (!project) return { content: [{ type: "text" as const, text: "Project not found." }] };
     }
 
-    const { error } = await supabase.from("todos").update(updates).eq("id", params.id).eq("user_id", userId);
+    const { data, error } = await ctx.supabase
+      .from("todos").update(updates).eq("id", params.id).eq("user_id", ctx.userId).select("id");
+
     if (error) throw new Error("Failed to update todo.");
+    if (!data?.length) return { content: [{ type: "text" as const, text: "Todo not found or not authorized." }] };
     return { content: [{ type: "text" as const, text: `Todo ${params.id} updated.` }] };
   });
 }

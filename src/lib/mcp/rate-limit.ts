@@ -1,21 +1,28 @@
-const attempts = new Map<string, { count: number; resetAt: number }>();
+interface RateRecord {
+  count: number;
+  resetAt: number;
+}
+
+const attempts = new Map<string, RateRecord>();
 
 const WINDOW_MS = 60_000;
 const MAX_ATTEMPTS = 10;
-const BACKOFF_BASE_MS = 100;
+const MAX_MAP_SIZE = 10_000;
 
 export function checkRateLimit(key: string): { allowed: boolean; retryAfterMs?: number } {
   const now = Date.now();
   const record = attempts.get(key);
 
   if (!record || now > record.resetAt) {
+    if (attempts.size >= MAX_MAP_SIZE && !attempts.has(key)) {
+      return { allowed: false, retryAfterMs: WINDOW_MS };
+    }
     attempts.set(key, { count: 1, resetAt: now + WINDOW_MS });
     return { allowed: true };
   }
 
   if (record.count >= MAX_ATTEMPTS) {
-    const retryAfterMs = record.resetAt - now;
-    return { allowed: false, retryAfterMs };
+    return { allowed: false, retryAfterMs: record.resetAt - now };
   }
 
   record.count++;
@@ -27,6 +34,9 @@ export function recordFailure(key: string): void {
   const record = attempts.get(key);
 
   if (!record || now > record.resetAt) {
+    if (attempts.size >= MAX_MAP_SIZE && !attempts.has(key)) {
+      return;
+    }
     attempts.set(key, { count: 1, resetAt: now + WINDOW_MS });
     return;
   }
@@ -40,9 +50,13 @@ export function recordSuccess(key: string): void {
 
 const CLEANUP_INTERVAL_MS = 300_000;
 
-setInterval(() => {
+const interval = setInterval(() => {
   const now = Date.now();
   for (const [key, record] of attempts) {
     if (now > record.resetAt) attempts.delete(key);
   }
-}, CLEANUP_INTERVAL_MS).unref?.();
+}, CLEANUP_INTERVAL_MS);
+
+if (typeof interval.unref === "function") {
+  interval.unref();
+}

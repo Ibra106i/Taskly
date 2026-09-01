@@ -1,25 +1,26 @@
 import { createMcpHandler, requireBearerAuth } from "@modelcontextprotocol/server";
 import { apiKeyVerifier } from "@/lib/mcp/auth";
 import { createTasklyMcpServer } from "@/lib/mcp/server";
+import { createSupabaseClient } from "@/lib/supabase/server";
 
-function createHandler() {
-  return createMcpHandler(
-    async ({ authInfo }) => {
-      const userId = authInfo?.clientId;
-      if (!userId) throw new Error("Unauthorized");
-      return createTasklyMcpServer(userId);
-    },
-    {
-      legacy: "reject",
-      onerror: (error) => console.error("MCP error:", error),
-    }
-  );
+const SECURITY_HEADERS: Record<string, string> = {
+  "X-Content-Type-Options": "nosniff",
+  "X-Frame-Options": "DENY",
+  "Cache-Control": "no-store",
+  "Referrer-Policy": "no-referrer",
+};
+
+function securityResponse(base: Response): Response {
+  const response = new Response(base.body, {
+    status: base.status,
+    statusText: base.statusText,
+    headers: base.headers,
+  });
+  for (const [key, value] of Object.entries(SECURITY_HEADERS)) {
+    response.headers.set(key, value);
+  }
+  return response;
 }
-
-const authGate = requireBearerAuth({
-  verifier: apiKeyVerifier,
-  resourceMetadataUrl: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/mcp/.well-known/oauth-protected-resource`,
-});
 
 function verifyOrigin(request: Request): Response | null {
   const origin = request.headers.get("origin");
@@ -32,38 +33,67 @@ function verifyOrigin(request: Request): Response | null {
     if (host && originUrl.host !== host) {
       return new Response(JSON.stringify({ error: "Origin mismatch" }), {
         status: 403,
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...SECURITY_HEADERS },
       });
     }
   } catch {
     return new Response(JSON.stringify({ error: "Invalid origin" }), {
       status: 403,
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...SECURITY_HEADERS },
     });
   }
 
   return null;
 }
 
+const authGate = requireBearerAuth({
+  verifier: apiKeyVerifier,
+  resourceMetadataUrl: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/mcp/.well-known/oauth-protected-resource`,
+});
+
 export async function POST(request: Request) {
   const originRejection = verifyOrigin(request);
   if (originRejection) return originRejection;
 
   const auth = await authGate(request);
-  if (auth instanceof Response) return auth;
+  if (auth instanceof Response) return securityResponse(auth);
 
-  const handler = createHandler();
-  return handler.fetch(request, { authInfo: auth });
+  const userId = auth.clientId;
+  if (!userId) {
+    return securityResponse(new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { "Content-Type": "application/json", ...SECURITY_HEADERS },
+    }));
+  }
+
+  const supabase = createSupabaseClient();
+  const handler = createMcpHandler(
+    async () => createTasklyMcpServer(userId, supabase),
+    {
+      legacy: "reject",
+      onerror: (error) => console.error("MCP error:", error),
+    }
+  );
+
+  return securityResponse(await handler.fetch(request, { authInfo: auth }));
 }
 
 export async function GET(request: Request) {
   const auth = await authGate(request);
-  if (auth instanceof Response) return auth;
-  return Response.json({ status: "ok", server: "taskly", tools: 9 });
+  if (auth instanceof Response) return securityResponse(auth);
+
+  return securityResponse(Response.json(
+    { status: "ok", server: "taskly", tools: 9 },
+    { headers: SECURITY_HEADERS }
+  ));
 }
 
 export async function DELETE(request: Request) {
   const auth = await authGate(request);
-  if (auth instanceof Response) return auth;
-  return new Response(null, { status: 204 });
+  if (auth instanceof Response) return securityResponse(auth);
+
+  return securityResponse(new Response(null, {
+    status: 204,
+    headers: SECURITY_HEADERS,
+  }));
 }
