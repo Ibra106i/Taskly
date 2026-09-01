@@ -46,6 +46,24 @@ function verifyOrigin(request: Request): Response | null {
   return null;
 }
 
+function injectBearerFromQuery(request: Request): Request {
+  if (request.headers.get("authorization")) return request;
+
+  const url = new URL(request.url);
+  const token = url.searchParams.get("token");
+  if (!token) return request;
+
+  url.searchParams.delete("token");
+
+  const modifiedRequest = new Request(url.toString(), {
+    method: request.method,
+    headers: new Headers(request.headers),
+  });
+  modifiedRequest.headers.set("authorization", `Bearer ${token}`);
+
+  return modifiedRequest;
+}
+
 const authGate = requireBearerAuth({
   verifier: apiKeyVerifier,
   resourceMetadataUrl: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/mcp/.well-known/oauth-protected-resource`,
@@ -55,7 +73,8 @@ export async function POST(request: Request) {
   const originRejection = verifyOrigin(request);
   if (originRejection) return originRejection;
 
-  const auth = await authGate(request);
+  const authed = injectBearerFromQuery(request);
+  const auth = await authGate(authed);
   if (auth instanceof Response) return securityResponse(auth);
 
   const userId = auth.clientId;
@@ -75,11 +94,12 @@ export async function POST(request: Request) {
     }
   );
 
-  return securityResponse(await handler.fetch(request, { authInfo: auth }));
+  return securityResponse(await handler.fetch(authed, { authInfo: auth }));
 }
 
 export async function GET(request: Request) {
-  const auth = await authGate(request);
+  const authed = injectBearerFromQuery(request);
+  const auth = await authGate(authed);
   if (auth instanceof Response) return securityResponse(auth);
 
   return securityResponse(Response.json(
@@ -89,7 +109,8 @@ export async function GET(request: Request) {
 }
 
 export async function DELETE(request: Request) {
-  const auth = await authGate(request);
+  const authed = injectBearerFromQuery(request);
+  const auth = await authGate(authed);
   if (auth instanceof Response) return securityResponse(auth);
 
   return securityResponse(new Response(null, {

@@ -24,34 +24,19 @@ export default async function SettingsPage() {
 
         <div className="space-y-8">
           <div className="p-6 rounded-3xl bg-[var(--color-surface)] shadow-[var(--shadow-soft)]">
-            <ApiKeyManager />
+            <ApiKeyManager appUrl={appUrl} />
           </div>
 
           <div className="p-6 rounded-3xl bg-[var(--color-surface)] shadow-[var(--shadow-soft)]">
-            <h3 className="text-lg font-semibold text-[var(--color-text)] mb-4">MCP Connection</h3>
-            <div className="space-y-3">
-              <div>
-                <p className="text-sm text-[var(--color-text-muted)] mb-1">Server URL</p>
-                <code className="block text-sm text-[var(--color-text)] bg-[var(--color-surface-inset)] px-3 py-2 rounded-xl font-mono">
-                  {appUrl}/api/mcp
-                </code>
-              </div>
-              <div>
-                <p className="text-sm text-[var(--color-text-muted)] mb-1">Claude Desktop Config</p>
-                <pre className="text-xs text-[var(--color-text)] bg-[var(--color-surface-inset)] px-3 py-2 rounded-xl font-mono overflow-x-auto">
-{`{
-  "mcpServers": {
-    "taskly": {
-      "url": "${appUrl}/api/mcp",
-      "headers": {
-        "Authorization": "Bearer <your-api-key>"
-      }
-    }
-  }
-}`}
-                </pre>
-              </div>
-            </div>
+            <h3 className="text-lg font-semibold text-[var(--color-text)] mb-4">How to Connect</h3>
+            <ol className="space-y-2 text-sm text-[var(--color-text-muted)]">
+              <li>1. Generate an API key above</li>
+              <li>2. Copy the connection URL shown after generation</li>
+              <li>3. Open Claude Desktop → Settings → Developer → MCP Servers</li>
+              <li>4. Click &quot;Add new MCP server&quot;</li>
+              <li>5. Name it &quot;Taskly&quot; and paste the URL</li>
+              <li>6. Restart Claude Desktop</li>
+            </ol>
           </div>
         </div>
       </div>
