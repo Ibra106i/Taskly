@@ -48,6 +48,7 @@ function verifyOrigin(request: Request): Response | null {
 
 function injectBearerFromQuery(request: Request): Request {
   if (request.headers.get("authorization")) return request;
+  if (process.env.ALLOW_QUERY_TOKEN !== "true") return request;
 
   const url = new URL(request.url);
   const token = url.searchParams.get("token");

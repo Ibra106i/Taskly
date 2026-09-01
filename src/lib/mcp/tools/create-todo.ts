@@ -20,10 +20,10 @@ export function registerCreateTodo(server: McpServer, ctx: McpContext) {
       if (!project) return { content: [{ type: "text" as const, text: "Project not found." }] };
     }
 
-    const { data: existing } = await ctx.supabase
-      .from("todos").select("position").eq("user_id", ctx.userId).is("parent_id", null)
-      .order("position", { ascending: false }).limit(1);
-    const position = existing?.length ? (existing[0].position || 0) + 1 : 0;
+    const { data: positionData, error: posError } = await ctx.supabase
+      .rpc("get_next_position", { p_user_id: ctx.userId });
+    if (posError) throw new Error("Failed to compute position.");
+    const position = positionData ?? 0;
 
     const { data: todo, error } = await ctx.supabase.from("todos").insert({
       title: params.title,

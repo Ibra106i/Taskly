@@ -12,8 +12,14 @@ export function registerGetTodo(server: McpServer, ctx: McpContext) {
     if (error || !todo) return { content: [{ type: "text" as const, text: "Todo not found." }] };
 
     const [subsResult, labelsResult] = await Promise.all([
-      ctx.supabase.from("todos").select("id, title, completed").eq("parent_id", params.id).order("position"),
-      ctx.supabase.from("todo_labels").select("labels(name)").eq("todo_id", params.id),
+      ctx.supabase.from("todos")
+        .select("id, title, completed")
+        .eq("parent_id", params.id)
+        .eq("user_id", ctx.userId)
+        .order("position"),
+      ctx.supabase.from("todo_labels")
+        .select("labels(name)")
+        .eq("todo_id", params.id),
     ]);
 
     const lines = [

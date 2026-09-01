@@ -18,7 +18,7 @@ export const apiKeyVerifier: OAuthTokenVerifier = {
     const keyHash = hashKey(token);
 
     const rateKey = `auth:${keyHash}`;
-    const { allowed, retryAfterMs } = checkRateLimit(rateKey);
+    const { allowed, retryAfterMs } = await checkRateLimit(supabase, rateKey);
     if (!allowed) {
       console.error(`Rate limited auth attempt, retry after ${retryAfterMs}ms`);
       throw new Error("Too many authentication attempts");
@@ -31,11 +31,11 @@ export const apiKeyVerifier: OAuthTokenVerifier = {
       .single();
 
     if (dbError || !apiKey || !timingSafeCompare(apiKey.key_hash, keyHash)) {
-      recordFailure(rateKey);
+      await recordFailure(supabase, rateKey);
       throw new Error("Invalid API key");
     }
 
-    recordSuccess(rateKey);
+    await recordSuccess(supabase, rateKey);
 
     await supabase
       .from("api_keys")
