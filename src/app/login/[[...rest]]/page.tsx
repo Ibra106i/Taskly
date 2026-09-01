@@ -6,21 +6,30 @@ import Link from "next/link";
 
 export default function LoginPage() {
   useEffect(() => {
-    const interval = setInterval(() => {
-      document.querySelectorAll("[data-variant='developmentMode']").forEach((el) => {
-        (el as HTMLElement).style.display = "none";
-      });
-      document.querySelectorAll(".clerk-dev-mode-banner, [class*='DevMode']").forEach((el) => {
-        (el as HTMLElement).style.display = "none";
-      });
-      const allDivs = document.querySelectorAll("div");
-      allDivs.forEach((div) => {
+    function removeDevBanner() {
+      document.querySelectorAll("div").forEach((div) => {
         if (div.textContent?.trim() === "Development mode") {
-          (div as HTMLElement).closest("div")?.remove();
+          let el: HTMLElement | null = div;
+          for (let i = 0; i < 5; i++) {
+            if (el?.parentElement) el = el.parentElement;
+          }
+          if (el) el.remove();
         }
       });
-    }, 100);
-    return () => clearInterval(interval);
+      document.querySelectorAll("[data-variant='developmentMode']").forEach((el) => {
+        let target: HTMLElement = el as HTMLElement;
+        for (let i = 0; i < 3; i++) {
+          if (target.parentElement) target = target.parentElement;
+        }
+        target.remove();
+      });
+    }
+
+    removeDevBanner();
+    const observer = new MutationObserver(removeDevBanner);
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    return () => observer.disconnect();
   }, []);
 
   return (

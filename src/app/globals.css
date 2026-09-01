@@ -50,6 +50,18 @@ input:-webkit-autofill:focus {
   transition: background-color 5000s ease-in-out 0s;
 }
 
+[data-variant="developmentMode"],
+.clerk-dev-mode-banner,
+[class*="devMode"],
+[class*="DevMode"] {
+  display: none !important;
+  visibility: hidden !important;
+  height: 0 !important;
+  overflow: hidden !important;
+  position: absolute !important;
+  pointer-events: none !important;
+}
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;
