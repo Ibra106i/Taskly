@@ -10,7 +10,7 @@ const dmSans = DM_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Taskly",
+  title: "TaskMax",
   description: "A minimal todo app",
 };
 

@@ -20,7 +20,7 @@ export async function GET() {
     .eq("user_id", userId)
     .not("due_date", "is", null);
 
-  const calendar = ical({ name: "Taskly" });
+  const calendar = ical({ name: "TaskMax" });
 
   todos?.forEach((todo) => {
     if (!todo.due_date) return;
@@ -41,7 +41,7 @@ export async function GET() {
   return new NextResponse(icsContent, {
     headers: {
       "Content-Type": "text/calendar; charset=utf-8",
-      "Content-Disposition": 'attachment; filename="taskly.ics"',
+      "Content-Disposition": 'attachment; filename="taskmax.ics"',
     },
   });
 }

@@ -49,7 +49,7 @@ export async function GET(request: Request) {
 
     try {
       await resend.emails.send({
-        from: "Taskly <onboarding@resend.dev>",
+        from: "TaskMax <onboarding@resend.dev>",
         to: email,
         subject: `Weekly Report — ${completedWeek} completed this week`,
         html: `
@@ -72,14 +72,14 @@ export async function GET(request: Request) {
             <body>
               <div class="container">
                 <h1>Weekly Report</h1>
-                <p>Here's your Taskly summary for the past 7 days:</p>
+                <p>Here's your TaskMax summary for the past 7 days:</p>
                 <div style="text-align: center; margin: 24px 0;">
                   <div class="stat"><span class="stat-num">${completedWeek}</span><span class="stat-label">Done this week</span></div>
                   <div class="stat"><span class="stat-num">${totalCompleted}</span><span class="stat-label">All time</span></div>
                   <div class="stat"><span class="stat-num">${pendingTotal}</span><span class="stat-label">Pending</span></div>
                 </div>
                 ${overdueTasks.length > 0 ? `<div class="overdue"><p style="font-weight:600; margin-bottom:8px;">Overdue tasks</p>${overdueTasks.map((t) => `<p>${t}</p>`).join("")}</div>` : ""}
-                <a href="${process.env.NEXT_PUBLIC_SUPABASE_URL?.replace('.supabase.co', '.vercel.app') || 'http://localhost:3000'}" class="button">Open Taskly</a>
+                <a href="${process.env.NEXT_PUBLIC_SUPABASE_URL?.replace('.supabase.co', '.vercel.app') || 'http://localhost:3000'}" class="button">Open TaskMax</a>
               </div>
             </body>
           </html>

@@ -11,8 +11,8 @@ import { registerListLabels } from "@/lib/mcp/tools/list-labels";
 import { registerSearchTodos } from "@/lib/mcp/tools/search-todos";
 import type { McpContext } from "@/lib/mcp/schema";
 
-export function createTasklyMcpServer(userId: string, supabase: SupabaseClient): McpServer {
-  const server = new McpServer({ name: "taskly", version: "1.0.0" });
+export function createTaskMaxMcpServer(userId: string, supabase: SupabaseClient): McpServer {
+  const server = new McpServer({ name: "taskmax", version: "1.0.0" });
   const ctx: McpContext = { userId, supabase };
 
   registerListTodos(server, ctx);

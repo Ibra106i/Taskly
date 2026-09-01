@@ -66,7 +66,7 @@ export default async function StatsPage() {
       <header className="bg-surface sticky top-0 z-10" style={{ boxShadow: "0px 12px 32px rgba(113, 121, 118, 0.08)" }}>
         <div className="max-w-2xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link href="/" className="font-headline-md text-primary font-bold tracking-tight">
-            Taskly
+            TaskMax
           </Link>
           <Link href="/" className="text-on-surface-variant hover:text-on-surface text-sm font-medium transition-colors">
             Back to todos

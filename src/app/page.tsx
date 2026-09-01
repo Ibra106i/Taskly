@@ -61,7 +61,7 @@ export default async function Home() {
       <header className="bg-surface shadow-soft sticky top-0 z-10">
         <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link href="/" className="font-headline-md text-primary font-bold tracking-tight">
-            Taskly
+            TaskMax
           </Link>
           <div className="flex items-center gap-sm">
             <Link href="/stats" className="p-sm rounded-lg hover:bg-primary/10 transition-colors text-on-surface-variant hover:text-on-surface">

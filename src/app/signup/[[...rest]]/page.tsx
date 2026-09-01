@@ -9,7 +9,7 @@ export default function SignupPage() {
       <div className="w-full max-w-[440px] px-4">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-[#45645e] tracking-tight">
-            Taskly
+            TaskMax
           </h1>
         </div>
 

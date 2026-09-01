@@ -1,6 +1,6 @@
 import { createMcpHandler, requireBearerAuth } from "@modelcontextprotocol/server";
 import { apiKeyVerifier } from "@/lib/mcp/auth";
-import { createTasklyMcpServer } from "@/lib/mcp/server";
+import { createTaskMaxMcpServer } from "@/lib/mcp/server";
 import { createSupabaseClient } from "@/lib/supabase/server";
 
 const SECURITY_HEADERS: Record<string, string> = {
@@ -87,7 +87,7 @@ export async function POST(request: Request) {
 
   const supabase = createSupabaseClient();
   const handler = createMcpHandler(
-    async () => createTasklyMcpServer(userId, supabase),
+    async () => createTaskMaxMcpServer(userId, supabase),
     {
       legacy: "reject",
       onerror: (error) => console.error("MCP error:", error),
@@ -103,7 +103,7 @@ export async function GET(request: Request) {
   if (auth instanceof Response) return securityResponse(auth);
 
   return securityResponse(Response.json(
-    { status: "ok", server: "taskly", tools: 9 },
+    { status: "ok", server: "taskmax", tools: 9 },
     { headers: SECURITY_HEADERS }
   ));
 }

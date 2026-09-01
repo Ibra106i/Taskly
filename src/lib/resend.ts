@@ -4,9 +4,9 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function sendWelcomeEmail(email: string, name: string) {
   await resend.emails.send({
-    from: "Taskly <onboarding@resend.dev>",
+    from: "TaskMax <onboarding@resend.dev>",
     to: email,
-    subject: "Welcome to Taskly!",
+    subject: "Welcome to TaskMax!",
     html: `
       <!DOCTYPE html>
       <html>
@@ -21,12 +21,12 @@ export async function sendWelcomeEmail(email: string, name: string) {
         </head>
         <body>
           <div class="container">
-            <h1>Welcome to Taskly!</h1>
+            <h1>Welcome to TaskMax!</h1>
             <p>Hi ${name},</p>
-            <p>Thanks for signing up. Taskly helps you stay focused and organized with a simple, beautiful todo list.</p>
+            <p>Thanks for signing up. TaskMax helps you stay focused and organized with a simple, beautiful todo list.</p>
             <p>Start by adding your first todo!</p>
-            <a href="${process.env.NEXT_PUBLIC_SUPABASE_URL?.replace('.supabase.co', '.vercel.app') || 'http://localhost:3000'}" class="button">Open Taskly</a>
-            <p style="margin-top: 32px; color: #717976; font-size: 14px;">— The Taskly Team</p>
+            <a href="${process.env.NEXT_PUBLIC_SUPABASE_URL?.replace('.supabase.co', '.vercel.app') || 'http://localhost:3000'}" class="button">Open TaskMax</a>
+            <p style="margin-top: 32px; color: #717976; font-size: 14px;">— The TaskMax Team</p>
           </div>
         </body>
       </html>
@@ -36,9 +36,9 @@ export async function sendWelcomeEmail(email: string, name: string) {
 
 export async function sendPasswordResetEmail(email: string, resetUrl: string) {
   await resend.emails.send({
-    from: "Taskly <onboarding@resend.dev>",
+    from: "TaskMax <onboarding@resend.dev>",
     to: email,
-    subject: "Reset your Taskly password",
+    subject: "Reset your TaskMax password",
     html: `
       <!DOCTYPE html>
       <html>
@@ -56,12 +56,12 @@ export async function sendPasswordResetEmail(email: string, resetUrl: string) {
         <body>
           <div class="container">
             <h1>Reset your password</h1>
-            <p>We received a request to reset your Taskly password.</p>
+            <p>We received a request to reset your TaskMax password.</p>
             <a href="${resetUrl}" class="button">Reset Password</a>
             <div class="warning">
               <p>This link expires in 1 hour. If you didn't request this, you can safely ignore this email.</p>
             </div>
-            <p style="margin-top: 32px; color: #717976; font-size: 14px;">— The Taskly Team</p>
+            <p style="margin-top: 32px; color: #717976; font-size: 14px;">— The TaskMax Team</p>
           </div>
         </body>
       </html>
@@ -82,7 +82,7 @@ export async function sendTodoReminderEmail(
     .join("");
 
   await resend.emails.send({
-    from: "Taskly <onboarding@resend.dev>",
+    from: "TaskMax <onboarding@resend.dev>",
     to: email,
     subject: `You have ${pendingTodos.length} pending todo${pendingTodos.length > 1 ? "s" : ""}`,
     html: `
@@ -104,8 +104,8 @@ export async function sendTodoReminderEmail(
             <p>Hi ${name},</p>
             <p>You have ${pendingTodos.length} pending todo${pendingTodos.length > 1 ? "s" : ""} waiting for you:</p>
             <ul>${todoList}</ul>
-            <a href="${process.env.NEXT_PUBLIC_SUPABASE_URL?.replace('.supabase.co', '.vercel.app') || 'http://localhost:3000'}" class="button">Open Taskly</a>
-            <p style="margin-top: 32px; color: #717976; font-size: 14px;">— The Taskly Team</p>
+            <a href="${process.env.NEXT_PUBLIC_SUPABASE_URL?.replace('.supabase.co', '.vercel.app') || 'http://localhost:3000'}" class="button">Open TaskMax</a>
+            <p style="margin-top: 32px; color: #717976; font-size: 14px;">— The TaskMax Team</p>
           </div>
         </body>
       </html>
@@ -133,7 +133,7 @@ export async function sendDailyReport(
     : "";
 
   await resend.emails.send({
-    from: "Taskly <onboarding@resend.dev>",
+    from: "TaskMax <onboarding@resend.dev>",
     to: email,
     subject: `Daily Report — ${stats.completedToday} completed, ${stats.pendingTotal} pending`,
     html: `
@@ -154,7 +154,7 @@ export async function sendDailyReport(
         <body>
           <div class="container">
             <h1>Daily Report</h1>
-            <p>Hi ${name}, here's your daily Taskly summary:</p>
+            <p>Hi ${name}, here's your daily TaskMax summary:</p>
             <div style="text-align: center; margin: 24px 0;">
               <div class="stat"><span class="stat-num">${stats.completedToday}</span><span class="stat-label">Done today</span></div>
               <div class="stat"><span class="stat-num">${stats.pendingTotal}</span><span class="stat-label">Pending</span></div>
@@ -162,8 +162,8 @@ export async function sendDailyReport(
             </div>
             ${overdueList}
             ${upcomingList}
-            <a href="${process.env.NEXT_PUBLIC_SUPABASE_URL?.replace('.supabase.co', '.vercel.app') || 'http://localhost:3000'}" class="button">Open Taskly</a>
-            <p style="margin-top: 32px; color: #717976; font-size: 14px;">— The Taskly Team</p>
+            <a href="${process.env.NEXT_PUBLIC_SUPABASE_URL?.replace('.supabase.co', '.vercel.app') || 'http://localhost:3000'}" class="button">Open TaskMax</a>
+            <p style="margin-top: 32px; color: #717976; font-size: 14px;">— The TaskMax Team</p>
           </div>
         </body>
       </html>

@@ -18,7 +18,7 @@ export default async function SettingsPage() {
             href="/"
             className="text-sm text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors"
           >
-            Back to Taskly
+            Back to TaskMax
           </Link>
         </div>
 
@@ -34,7 +34,7 @@ export default async function SettingsPage() {
               <li>2. Copy the connection URL shown after generation</li>
               <li>3. Open Claude Desktop → Settings → Developer → MCP Servers</li>
               <li>4. Click &quot;Add new MCP server&quot;</li>
-              <li>5. Name it &quot;Taskly&quot; and paste the URL</li>
+              <li>5. Name it &quot;TaskMax&quot; and paste the URL</li>
               <li>6. Restart Claude Desktop</li>
             </ol>
           </div>

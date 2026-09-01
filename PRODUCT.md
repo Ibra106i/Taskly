@@ -16,15 +16,15 @@ Students, founders, professionals, and anyone who wants to stay organized. They 
 
 ## Product Purpose
 
-Taskly helps people stay organized with a clean, minimal todo app — and gives power users an edge through AI trend analysis of their productivity patterns. The core todo experience is free and unlimited. We charge for advanced AI capabilities, not for basic features like task duration or categories.
+TaskMax helps people stay organized with a clean, minimal todo app — and gives power users an edge through AI trend analysis of their productivity patterns. The core todo experience is free and unlimited. We charge for advanced AI capabilities, not for basic features like task duration or categories.
 
 ## Positioning
 
-Most todo apps either charge for premium features (tags, durations, categories) or offer AI as an upsell on top of a free tier. Taskly does the opposite: every core task management feature is free forever. The AI layer — which studies your productivity trends, surfaces patterns, and gives actionable insights — is the paid product. No tricks, no feature gates on basics.
+Most todo apps either charge for premium features (tags, durations, categories) or offer AI as an upsell on top of a free tier. TaskMax does the opposite: every core task management feature is free forever. The AI layer — which studies your productivity trends, surfaces patterns, and gives actionable insights — is the paid product. No tricks, no feature gates on basics.
 
 ## Operating Context
 
-Users interact with Taskly daily, often multiple times. The primary workflow is: open app → see todos → add/toggle/delete → optionally check AI insights. Users may check in briefly between classes, meetings, or tasks. The experience should feel fast and simple — not a tool that demands attention, but one that fits into the routine.
+Users interact with TaskMax daily, often multiple times. The primary workflow is: open app → see todos → add/toggle/delete → optionally check AI insights. Users may check in briefly between classes, meetings, or tasks. The experience should feel fast and simple — not a tool that demands attention, but one that fits into the routine.
 
 ## Capabilities and Constraints
 
@@ -38,7 +38,7 @@ Users interact with Taskly daily, often multiple times. The primary workflow is:
 
 ## Brand Commitments
 
-- Name: Taskly
+- Name: TaskMax
 - Voice: Clean, direct, confident — not playful or quirky
 - No feature gates on core task management
 - Transparency about what's free vs. paid
