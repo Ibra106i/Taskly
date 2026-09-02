@@ -16,7 +16,7 @@ export async function generateApiKey(): Promise<{ key: string; id: string }> {
 
   const { data, error } = await supabase
     .from("api_keys")
-    .insert({ user_id: userId, key_hash: keyHash })
+    .insert({ user_id: userId, key_hash: keyHash, prefix: key.slice(0, 8) })
     .select("id")
     .single();
 
