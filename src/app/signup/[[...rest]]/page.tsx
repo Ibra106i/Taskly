@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { SignUp } from "@clerk/nextjs";
 import Link from "next/link";
+import Image from "next/image";
 
 export default function SignupPage() {
   useEffect(() => {
@@ -36,6 +37,14 @@ export default function SignupPage() {
     <main className="min-h-screen flex items-center justify-center bg-[#F7F5F0]">
       <div className="w-full max-w-[440px] px-4">
         <div className="text-center mb-8">
+          <Image
+            src="/logo.png"
+            alt="TaskMax logo"
+            width={80}
+            height={80}
+            className="mx-auto mb-4 rounded-2xl"
+            priority
+          />
           <h1 className="text-4xl font-bold text-[#45645e] tracking-tight">
             TaskMax
           </h1>

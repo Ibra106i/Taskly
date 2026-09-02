@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import ApiKeyManager from "@/components/ApiKeyManager";
 
 export const metadata: Metadata = {
@@ -20,7 +21,10 @@ export default async function SettingsPage() {
     <div className="min-h-screen bg-[var(--color-bg)] p-6">
       <div className="max-w-2xl mx-auto">
         <div className="flex items-center justify-between mb-8">
-          <h1 className="text-2xl font-bold text-[var(--color-text)]">Settings</h1>
+          <div className="flex items-center gap-sm">
+            <Image src="/logo.png" alt="TaskMax" width={32} height={32} className="rounded-lg" />
+            <h1 className="text-2xl font-bold text-[var(--color-text)]">Settings</h1>
+          </div>
           <Link
             href="/"
             className="text-sm text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors"

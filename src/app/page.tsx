@@ -1,6 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { createSupabaseClient } from "@/lib/supabase/server";
 import TodoList from "@/components/TodoList";
 import SignOutButton from "@/components/SignOutButton";
@@ -60,7 +61,8 @@ export default async function Home() {
     <div className="min-h-screen bg-background">
       <header className="bg-surface shadow-soft sticky top-0 z-10">
         <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/" className="font-headline-md text-primary font-bold tracking-tight">
+          <Link href="/" className="flex items-center gap-sm font-headline-md text-primary font-bold tracking-tight">
+            <Image src="/logo.png" alt="TaskMax" width={28} height={28} className="rounded-lg" />
             TaskMax
           </Link>
           <div className="flex items-center gap-sm">

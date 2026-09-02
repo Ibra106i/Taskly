@@ -3,6 +3,7 @@ import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { createSupabaseClient } from "@/lib/supabase/server";
 import Link from "next/link";
+import Image from "next/image";
 import StatsActions from "@/components/StatsActions";
 
 export const metadata: Metadata = {
@@ -72,7 +73,8 @@ export default async function StatsPage() {
     <div className="min-h-screen bg-background">
       <header className="bg-surface sticky top-0 z-10" style={{ boxShadow: "0px 12px 32px rgba(113, 121, 118, 0.08)" }}>
         <div className="max-w-2xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/" className="font-headline-md text-primary font-bold tracking-tight">
+          <Link href="/" className="flex items-center gap-sm font-headline-md text-primary font-bold tracking-tight">
+            <Image src="/logo.png" alt="TaskMax" width={28} height={28} className="rounded-lg" />
             TaskMax
           </Link>
           <Link href="/" className="text-on-surface-variant hover:text-on-surface text-sm font-medium transition-colors">
