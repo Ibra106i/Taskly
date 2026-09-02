@@ -39,15 +39,12 @@ export default function SignupPage() {
         <div className="text-center mb-8">
           <Image
             src="/logo.png"
-            alt="TaskMax logo"
-            width={80}
-            height={80}
-            className="mx-auto mb-4 rounded-2xl"
+            alt="TaskMax"
+            width={120}
+            height={120}
+            className="mx-auto"
             priority
           />
-          <h1 className="text-4xl font-bold text-[#45645e] tracking-tight">
-            TaskMax
-          </h1>
         </div>
 
         <SignUp
