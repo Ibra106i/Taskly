@@ -1,7 +1,14 @@
+import type { Metadata } from "next";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import ApiKeyManager from "@/components/ApiKeyManager";
+
+export const metadata: Metadata = {
+  title: "Settings — TaskMax",
+  description:
+    "Manage your TaskMax API keys and connect AI agents via MCP.",
+};
 
 export default async function SettingsPage() {
   const { userId } = await auth();

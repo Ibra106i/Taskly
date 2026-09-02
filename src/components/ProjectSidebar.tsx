@@ -31,35 +31,48 @@ export default function ProjectSidebar({
   const [newColor, setNewColor] = useState(PROJECT_COLORS[0]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
+  const [mutatingId, setMutatingId] = useState<string | "new" | null>(null);
 
   const handleAdd = async () => {
     const name = newName.trim();
     if (!name) return;
+    setMutatingId("new");
     try {
       const project = await addProject(name, newColor);
       onProjectsChange([...projects, project]);
       setNewName("");
       setAdding(false);
-    } catch {}
+    } catch (e) {
+      console.error("Failed to add project:", e);
+    }
+    setMutatingId(null);
   };
 
   const handleUpdate = async (id: string) => {
     const name = editName.trim();
     if (!name) return;
+    setMutatingId(id);
     try {
       await updateProject(id, { name });
       onProjectsChange(projects.map((p) => (p.id === id ? { ...p, name } : p)));
       setEditingId(null);
-    } catch {}
+    } catch (e) {
+      console.error("Failed to update project:", e);
+    }
+    setMutatingId(null);
   };
 
   const handleDelete = async (id: string) => {
     if (!confirm("Delete this project? Tasks won't be deleted.")) return;
+    setMutatingId(id);
     try {
       await deleteProject(id);
       onProjectsChange(projects.filter((p) => p.id !== id));
       if (selectedProjectId === id) onSelectProject(null);
-    } catch {}
+    } catch (e) {
+      console.error("Failed to delete project:", e);
+    }
+    setMutatingId(null);
   };
 
   return (
@@ -120,7 +133,7 @@ export default function ProjectSidebar({
                     setEditingId(project.id);
                     setEditName(project.name);
                   }}
-                  className="material-symbols-outlined text-[14px] cursor-pointer hover:text-on-surface"
+                  className={`material-symbols-outlined text-[14px] cursor-pointer hover:text-on-surface ${mutatingId === project.id ? "opacity-50" : ""}`}
                 >
                   edit
                 </span>
@@ -129,9 +142,9 @@ export default function ProjectSidebar({
                     e.stopPropagation();
                     handleDelete(project.id);
                   }}
-                  className="material-symbols-outlined text-[14px] cursor-pointer hover:text-error"
+                  className={`material-symbols-outlined text-[14px] cursor-pointer hover:text-error ${mutatingId === project.id ? "opacity-50" : ""}`}
                 >
-                  delete
+                  {mutatingId === project.id ? "hourglass_empty" : "delete"}
                 </span>
               </div>
             </button>
@@ -176,9 +189,10 @@ export default function ProjectSidebar({
               <div className="flex gap-sm">
                 <button
                   onClick={handleAdd}
-                  className="h-7 px-3 rounded-lg bg-primary text-on-primary text-[12px] font-medium"
+                  disabled={mutatingId === "new"}
+                  className="h-7 px-3 rounded-lg bg-primary text-on-primary text-[12px] font-medium disabled:opacity-50"
                 >
-                  Add
+                  {mutatingId === "new" ? "Adding..." : "Add"}
                 </button>
                 <button
                   onClick={() => setAdding(false)}

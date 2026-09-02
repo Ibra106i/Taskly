@@ -1,8 +1,15 @@
+import type { Metadata } from "next";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { createSupabaseClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import StatsActions from "@/components/StatsActions";
+
+export const metadata: Metadata = {
+  title: "Stats — TaskMax",
+  description:
+    "View your productivity trends, completion rates, and task breakdowns.",
+};
 
 export default async function StatsPage() {
   const { userId } = await auth();

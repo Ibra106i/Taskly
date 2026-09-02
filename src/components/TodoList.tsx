@@ -63,6 +63,10 @@ export default function TodoList({
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const [showShortcuts, setShowShortcuts] = useState(false);
+  const [togglingIds, setTogglingIds] = useState<Set<string>>(new Set());
+  const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
+  const [clearingDone, setClearingDone] = useState(false);
+  const [addingSection, setAddingSection] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
 
@@ -280,6 +284,8 @@ export default function TodoList({
   };
 
   const handleToggle = async (id: string, completed: boolean) => {
+    if (togglingIds.has(id)) return;
+    setTogglingIds((prev) => new Set(prev).add(id));
     try {
       await toggleTodo(id, completed);
       setTodos(todos.map((t) => (t.id === id ? { ...t, completed } : t)));
@@ -287,6 +293,11 @@ export default function TodoList({
     } catch {
       setError("Failed to update todo.");
     }
+    setTogglingIds((prev) => {
+      const next = new Set(prev);
+      next.delete(id);
+      return next;
+    });
   };
 
   const handleUpdate = async (id: string, updates: Partial<Todo>) => {
@@ -299,6 +310,8 @@ export default function TodoList({
   };
 
   const handleDelete = async (id: string) => {
+    if (deletingIds.has(id)) return;
+    setDeletingIds((prev) => new Set(prev).add(id));
     try {
       await deleteTodo(id);
       setTodos(todos.filter((t) => t.id !== id && t.parent_id !== id));
@@ -306,10 +319,16 @@ export default function TodoList({
     } catch {
       setError("Failed to delete todo.");
     }
+    setDeletingIds((prev) => {
+      const next = new Set(prev);
+      next.delete(id);
+      return next;
+    });
   };
 
   const handleClearCompleted = async () => {
     if (!confirm("Delete all completed todos?")) return;
+    setClearingDone(true);
     try {
       await clearCompleted();
       const count = completedCount;
@@ -318,6 +337,7 @@ export default function TodoList({
     } catch {
       setError("Failed to clear completed todos.");
     }
+    setClearingDone(false);
   };
 
   const handleAddSubTodo = async (parentId: string) => {
@@ -344,7 +364,8 @@ export default function TodoList({
   };
 
   const handleAddSection = async () => {
-    if (!selectedProjectId) return;
+    if (!selectedProjectId || addingSection) return;
+    setAddingSection(true);
     try {
       const section = await addSection(selectedProjectId, "New Section");
       setSections([...sections, section]);
@@ -352,6 +373,7 @@ export default function TodoList({
     } catch {
       setError("Failed to add section.");
     }
+    setAddingSection(false);
   };
 
   const handleTodoLabelIdsChange = (todoId: string, labelIds: string[]) => {
@@ -645,11 +667,12 @@ export default function TodoList({
               {completedCount > 0 && (
                 <motion.button
                   onClick={handleClearCompleted}
+                  disabled={clearingDone}
                   whileTap={{ scale: 0.95 }}
-                  className="flex items-center gap-xs px-3 py-1.5 rounded-full text-[12px] font-medium text-error hover:bg-error-container/20 transition-colors"
+                  className="flex items-center gap-xs px-3 py-1.5 rounded-full text-[12px] font-medium text-error hover:bg-error-container/20 transition-colors disabled:opacity-50"
                 >
-                  <span className="material-symbols-outlined text-[14px]">delete_sweep</span>
-                  Clear done
+                  <span className="material-symbols-outlined text-[14px]">{clearingDone ? "hourglass_empty" : "delete_sweep"}</span>
+                  {clearingDone ? "Clearing..." : "Clear done"}
                 </motion.button>
               )}
             </div>
@@ -754,10 +777,11 @@ export default function TodoList({
               )}
               <button
                 onClick={handleAddSection}
-                className="flex items-center gap-sm mt-md text-sm text-on-surface-variant hover:text-on-surface transition-colors"
+                disabled={addingSection}
+                className="flex items-center gap-sm mt-md text-sm text-on-surface-variant hover:text-on-surface transition-colors disabled:opacity-50"
               >
-                <span className="material-symbols-outlined text-base">add</span>
-                Add section
+                <span className="material-symbols-outlined text-base">{addingSection ? "hourglass_empty" : "add"}</span>
+                {addingSection ? "Adding..." : "Add section"}
               </button>
             </div>
           ) : (

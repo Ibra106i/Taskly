@@ -15,6 +15,7 @@ export default function ApiKeyManager({ appUrl }: { appUrl: string }) {
   const [newKey, setNewKey] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
+  const [revokingId, setRevokingId] = useState<string | null>(null);
   const [showNewKey, setShowNewKey] = useState(false);
 
   useEffect(() => {
@@ -47,12 +48,14 @@ export default function ApiKeyManager({ appUrl }: { appUrl: string }) {
 
   async function handleRevoke(id: string) {
     if (!confirm("Revoke this key? The AI agent using it will lose access.")) return;
+    setRevokingId(id);
     try {
       await revokeApiKey(id);
       await loadKeys();
     } catch (e) {
       console.error("Failed to revoke API key:", e);
     }
+    setRevokingId(null);
   }
 
   function copyKey() {
@@ -181,9 +184,10 @@ export default function ApiKeyManager({ appUrl }: { appUrl: string }) {
               </div>
               <button
                 onClick={() => handleRevoke(key.id)}
-                className="text-xs text-red-500 hover:text-red-600 transition-colors"
+                disabled={revokingId === key.id}
+                className="text-xs text-red-500 hover:text-red-600 transition-colors disabled:opacity-50"
               >
-                Revoke
+                {revokingId === key.id ? "Revoking..." : "Revoke"}
               </button>
             </motion.div>
           ))

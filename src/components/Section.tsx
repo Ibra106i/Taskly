@@ -41,6 +41,8 @@ export default function Section({
   const [name, setName] = useState(section.name);
   const [newTodo, setNewTodo] = useState("");
   const [isAdding, setIsAdding] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const nameRef = useRef<HTMLInputElement>(null);
 
@@ -58,6 +60,7 @@ export default function Section({
       setEditingName(false);
       return;
     }
+    setSaving(true);
     try {
       await updateSection(section.id, { name: trimmed });
       onSectionChange(allSections.map((s) => (s.id === section.id ? { ...s, name: trimmed } : s)));
@@ -65,16 +68,19 @@ export default function Section({
       console.error("Failed to rename section", e);
       setName(section.name);
     }
+    setSaving(false);
     setEditingName(false);
   };
 
   const handleDelete = async () => {
     if (!confirm(`Delete "${section.name}"? Tasks will move to unsectioned.`)) return;
+    setDeleting(true);
     try {
       await deleteSection(section.id);
       onSectionChange(allSections.filter((s) => s.id !== section.id));
     } catch (e) {
       console.error("Failed to delete section", e);
+      setDeleting(false);
     }
   };
 
@@ -114,15 +120,17 @@ export default function Section({
         <div className="hidden group-hover/section:flex items-center gap-0.5 ml-auto">
           <button
             onClick={() => setEditingName(true)}
-            className="p-0.5 rounded hover:bg-surface-secondary text-on-surface-variant"
+            disabled={saving}
+            className="p-0.5 rounded hover:bg-surface-secondary text-on-surface-variant disabled:opacity-50"
           >
             <span className="material-symbols-outlined text-sm">edit</span>
           </button>
           <button
             onClick={handleDelete}
-            className="p-0.5 rounded hover:bg-surface-secondary text-error"
+            disabled={deleting}
+            className="p-0.5 rounded hover:bg-surface-secondary text-error disabled:opacity-50"
           >
-            <span className="material-symbols-outlined text-sm">delete</span>
+            <span className="material-symbols-outlined text-sm">{deleting ? "hourglass_empty" : "delete"}</span>
           </button>
         </div>
       </div>

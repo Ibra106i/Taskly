@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { DM_Sans } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
@@ -10,8 +10,31 @@ const dmSans = DM_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "TaskMax",
-  description: "A minimal todo app",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://taskmax.vercel.app"),
+  title: {
+    default: "TaskMax",
+    template: "%s — TaskMax",
+  },
+  description:
+    "Organize your tasks, projects, and labels with AI-powered assistance via MCP.",
+  openGraph: {
+    title: "TaskMax",
+    description:
+      "Organize your tasks, projects, and labels with AI-powered assistance via MCP.",
+    type: "website",
+    siteName: "TaskMax",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "TaskMax",
+    description:
+      "Organize your tasks, projects, and labels with AI-powered assistance via MCP.",
+  },
+  manifest: "/manifest.json",
+};
+
+export const viewport: Viewport = {
+  themeColor: "#45645e",
 };
 
 export default function RootLayout({

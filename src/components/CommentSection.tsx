@@ -18,6 +18,7 @@ export default function CommentSection({ todoId, commentCount, onCommentCountCha
   const [newBody, setNewBody] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editBody, setEditBody] = useState("");
+  const [mutating, setMutating] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const editRef = useRef<HTMLTextAreaElement>(null);
 
@@ -42,7 +43,8 @@ export default function CommentSection({ todoId, commentCount, onCommentCountCha
   }, [editingId]);
 
   const handleAdd = async () => {
-    if (!newBody.trim()) return;
+    if (!newBody.trim() || mutating) return;
+    setMutating(true);
     try {
       const comment = await addComment(todoId, newBody.trim());
       setComments([...comments, comment]);
@@ -51,10 +53,12 @@ export default function CommentSection({ todoId, commentCount, onCommentCountCha
     } catch (e) {
       console.error("Failed to add comment", e);
     }
+    setMutating(false);
   };
 
   const handleUpdate = async (id: string) => {
-    if (!editBody.trim()) return;
+    if (!editBody.trim() || mutating) return;
+    setMutating(true);
     try {
       await updateComment(id, editBody.trim());
       setComments(comments.map((c) => (c.id === id ? { ...c, body: editBody.trim(), updated_at: new Date().toISOString() } : c)));
@@ -62,9 +66,12 @@ export default function CommentSection({ todoId, commentCount, onCommentCountCha
     } catch (e) {
       console.error("Failed to update comment", e);
     }
+    setMutating(false);
   };
 
   const handleDelete = async (id: string) => {
+    if (mutating) return;
+    setMutating(true);
     try {
       await deleteComment(id);
       setComments(comments.filter((c) => c.id !== id));
@@ -72,6 +79,7 @@ export default function CommentSection({ todoId, commentCount, onCommentCountCha
     } catch (e) {
       console.error("Failed to delete comment", e);
     }
+    setMutating(false);
   };
 
   const formatDate = (dateStr: string) => {
@@ -145,13 +153,15 @@ export default function CommentSection({ todoId, commentCount, onCommentCountCha
                         setEditingId(comment.id);
                         setEditBody(comment.body);
                       }}
-                      className="p-0.5 rounded hover:bg-surface-secondary text-on-surface-variant"
+                      disabled={mutating}
+                      className="p-0.5 rounded hover:bg-surface-secondary text-on-surface-variant disabled:opacity-50"
                     >
                       <span className="material-symbols-outlined text-sm">edit</span>
                     </button>
                     <button
                       onClick={() => handleDelete(comment.id)}
-                      className="p-0.5 rounded hover:bg-surface-secondary text-error"
+                      disabled={mutating}
+                      className="p-0.5 rounded hover:bg-surface-secondary text-error disabled:opacity-50"
                     >
                       <span className="material-symbols-outlined text-sm">delete</span>
                     </button>
@@ -181,10 +191,10 @@ export default function CommentSection({ todoId, commentCount, onCommentCountCha
         />
         <button
           onClick={handleAdd}
-          disabled={!newBody.trim()}
+          disabled={!newBody.trim() || mutating}
           className="px-2 py-1 text-sm rounded-lg bg-primary text-white hover:bg-primary-hover disabled:opacity-50 transition-all"
         >
-          <span className="material-symbols-outlined text-sm">send</span>
+          <span className="material-symbols-outlined text-sm">{mutating ? "hourglass_empty" : "send"}</span>
         </button>
       </div>
     </div>

@@ -25,6 +25,7 @@ export default function LabelPicker({
   const [newColor, setNewColor] = useState(LABEL_COLORS[0]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
+  const [mutatingId, setMutatingId] = useState<string | "new" | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -50,6 +51,7 @@ export default function LabelPicker({
 
   const handleCreate = async () => {
     if (!newName.trim()) return;
+    setMutatingId("new");
     try {
       const label = await addLabel(newName.trim(), newColor);
       onLabelsChange([...labels, label]);
@@ -60,10 +62,12 @@ export default function LabelPicker({
     } catch (e) {
       console.error("Failed to create label", e);
     }
+    setMutatingId(null);
   };
 
   const handleRename = async (id: string) => {
     if (!editingName.trim()) return;
+    setMutatingId(id);
     try {
       await updateLabel(id, { name: editingName.trim() });
       onLabelsChange(labels.map((l) => (l.id === id ? { ...l, name: editingName.trim() } : l)));
@@ -71,9 +75,11 @@ export default function LabelPicker({
     } catch (e) {
       console.error("Failed to rename label", e);
     }
+    setMutatingId(null);
   };
 
   const handleDelete = async (id: string) => {
+    setMutatingId(id);
     try {
       await deleteLabel(id);
       onLabelsChange(labels.filter((l) => l.id !== id));
@@ -81,6 +87,7 @@ export default function LabelPicker({
     } catch (e) {
       console.error("Failed to delete label", e);
     }
+    setMutatingId(null);
   };
 
   return (
@@ -147,16 +154,18 @@ export default function LabelPicker({
                         setEditingId(label.id);
                         setEditingName(label.name);
                       }}
-                      className="p-0.5 rounded hover:bg-surface-secondary text-on-surface-variant"
+                      disabled={mutatingId === label.id}
+                      className="p-0.5 rounded hover:bg-surface-secondary text-on-surface-variant disabled:opacity-50"
                     >
                       <span className="material-symbols-outlined text-sm">edit</span>
                     </button>
                     <button
                       type="button"
                       onClick={() => handleDelete(label.id)}
-                      className="p-0.5 rounded hover:bg-surface-secondary text-error"
+                      disabled={mutatingId === label.id}
+                      className="p-0.5 rounded hover:bg-surface-secondary text-error disabled:opacity-50"
                     >
-                      <span className="material-symbols-outlined text-sm">delete</span>
+                      <span className="material-symbols-outlined text-sm">{mutatingId === label.id ? "hourglass_empty" : "delete"}</span>
                     </button>
                   </div>
                 )}
@@ -199,9 +208,10 @@ export default function LabelPicker({
                   <button
                     type="button"
                     onClick={handleCreate}
-                    className="flex-1 px-2 py-1 text-xs font-medium bg-primary text-white rounded-lg hover:bg-primary-hover"
+                    disabled={mutatingId === "new"}
+                    className="flex-1 px-2 py-1 text-xs font-medium bg-primary text-white rounded-lg hover:bg-primary-hover disabled:opacity-50"
                   >
-                    Add
+                    {mutatingId === "new" ? "Adding..." : "Add"}
                   </button>
                   <button
                     type="button"
