@@ -20,7 +20,6 @@ export async function checkRateLimit(
   const count = data as number;
 
   if (count > MAX_ATTEMPTS) {
-    // Re-fetch window_start for retry-after calculation
     const { data: row } = await supabase
       .from("rate_limits")
       .select("window_start")
@@ -34,13 +33,6 @@ export async function checkRateLimit(
   }
 
   return { allowed: true };
-}
-
-export async function recordFailure(
-  supabase: SupabaseClient,
-  key: string
-): Promise<void> {
-  await checkRateLimit(supabase, key);
 }
 
 export async function recordSuccess(

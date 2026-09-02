@@ -1,7 +1,7 @@
 import type { OAuthTokenVerifier, AuthInfo } from "@modelcontextprotocol/server";
 import { createSupabaseClient } from "@/lib/supabase/server";
 import { hashKey, timingSafeCompare } from "@/lib/mcp/crypto";
-import { checkRateLimit, recordFailure, recordSuccess, cleanupExpiredRateLimits } from "@/lib/mcp/rate-limit";
+import { checkRateLimit, recordSuccess, cleanupExpiredRateLimits } from "@/lib/mcp/rate-limit";
 
 let cachedSupabase: ReturnType<typeof createSupabaseClient> | null = null;
 
@@ -31,7 +31,6 @@ export const apiKeyVerifier: OAuthTokenVerifier = {
       .single();
 
     if (dbError || !apiKey || !timingSafeCompare(apiKey.key_hash, keyHash)) {
-      await recordFailure(supabase, rateKey);
       throw new Error("Invalid API key");
     }
 
@@ -42,7 +41,6 @@ export const apiKeyVerifier: OAuthTokenVerifier = {
       .update({ last_used_at: new Date().toISOString() })
       .eq("id", apiKey.id);
 
-    // Random cleanup: 1% of successful auth calls prune expired rows
     if (Math.random() < 0.01) {
       cleanupExpiredRateLimits(supabase).catch(() => {});
     }
